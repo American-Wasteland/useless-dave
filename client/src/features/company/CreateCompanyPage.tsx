@@ -152,7 +152,7 @@ export function CreateCompanyPage() {
                       className="sr-only"
                     />
                     <ImagePlus className="w-8 h-8 text-muted-foreground group-hover:text-secondary transition-colors" />
-                    <span className="text-xs text-muted-foreground mt-1 group-hover:text-secondary font-medium">
+                    <span className="text-center text-xs text-muted-foreground mt-1 group-hover:text-secondary font-medium">
                       Logo (opcional)
                     </span>
                   </label>

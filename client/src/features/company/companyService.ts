@@ -139,8 +139,6 @@ export async function getUserCompanies(userId: string): Promise<Company[]> {
   const membershipsRef = collection(db, 'users', userId, 'memberships')
   const membershipsSnap = await getDocs(membershipsRef)
 
-  console.log('Memberships found:', membershipsSnap.size)
-
   if (membershipsSnap.empty) {
     return []
   }
@@ -150,7 +148,6 @@ export async function getUserCompanies(userId: string): Promise<Company[]> {
 
   for (const membershipDoc of membershipsSnap.docs) {
     const companyId = membershipDoc.id // Use doc ID directly
-    console.log('Fetching company:', companyId)
 
     try {
       const companyRef = doc(db, 'companies', companyId)

@@ -284,17 +284,6 @@ export function CommandInput() {
           </button>
         </div>
       </form>
-
-      {/* Hint text */}
-      {state.stage === 'select-command' && !showSuggestions && (
-        <div className="mt-2 px-4 text-xs text-muted-foreground text-center">
-          Presiona{' '}
-          <kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground font-mono">
-            /
-          </kbd>{' '}
-          para ver comandos disponibles
-        </div>
-      )}
     </div>
   )
 }

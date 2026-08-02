@@ -40,11 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchCompanies = useCallback(async (firebaseUser: FirebaseUser) => {
     try {
-      console.log('Fetching companies for user:', firebaseUser.uid)
-
-      // Ensure user document exists
       const userDocRef = doc(db, 'users', firebaseUser.uid)
-      console.log('Updating user doc...')
+
       await setDoc(
         userDocRef,
         {
@@ -55,10 +52,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         { merge: true },
       )
-      console.log('User doc updated, fetching companies...')
 
       const userCompanies = await getUserCompanies(firebaseUser.uid)
-      console.log('Companies fetched:', userCompanies.length)
+
       setCompanies(userCompanies)
       setCompaniesLoaded(true)
     } catch (error) {

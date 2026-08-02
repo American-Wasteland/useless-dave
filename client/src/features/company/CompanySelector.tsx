@@ -1,6 +1,6 @@
 import { Building2, ChevronRight, Plus } from 'lucide-react'
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import daveEmblem from '/dave-emblem.svg'
 import { Button } from '../../components/ui/Button'
 import type { Company } from '../../types'
@@ -9,19 +9,22 @@ import { useAuth } from '../auth/AuthContext'
 export function CompanySelector() {
   const { companies, loading, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const skipAutoRedirect = (location.state as { skipAutoRedirect?: boolean })
+    ?.skipAutoRedirect
 
-  // Auto-redirect if only one company
+  // Auto-redirect if only one company (unless user manually clicked "Cambiar empresa")
   useEffect(() => {
-    if (!loading && companies.length === 1) {
+    if (!loading && companies.length === 1 && !skipAutoRedirect) {
       navigate(`/${companies[0].id}`, { replace: true })
     }
-  }, [loading, companies, navigate])
+  }, [loading, companies, navigate, skipAutoRedirect])
 
   const handleSelectCompany = (company: Company) => {
     navigate(`/${company.id}`)
   }
 
-  if (loading || companies.length === 1) {
+  if (loading || (companies.length === 1 && !skipAutoRedirect)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

@@ -40,7 +40,7 @@ export function LoginPage() {
             Useless Dave
           </h1>
           <p className="text-lg text-muted-foreground">
-            El ERP con IA que creamos también con IA porque los otros no sirven
+            El ERP que creamos porque los otros no sirven
           </p>
         </div>
 
@@ -50,7 +50,7 @@ export function LoginPage() {
           <div className="relative mb-8">
             <div className="flex flex-wrap justify-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-bold shadow-lg transform -rotate-2 hover:rotate-0 transition-transform">
-                🤖 IA que entiende
+                🤖 Sin IA que no entiende
               </span>
               <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-bold shadow-lg transform rotate-2 hover:rotate-0 transition-transform">
                 ⚡ Cero tutoriales
