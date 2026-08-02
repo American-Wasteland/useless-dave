@@ -1,5 +1,5 @@
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
-import { db } from '../index.js'
+import { db } from '../lib/db.js'
 
 interface InviteUserData {
   companyId: string

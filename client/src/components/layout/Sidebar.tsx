@@ -3,6 +3,7 @@ import {
   FolderKanban,
   Home,
   LogOut,
+  MessageCircle,
   Receipt,
   Wallet,
 } from 'lucide-react'
@@ -11,7 +12,8 @@ import { useAuth } from '../../features/auth/AuthContext'
 import { cn } from '../../lib/utils'
 
 const navigation = [
-  { name: 'Inicio', href: '/', icon: Home },
+  { name: 'Chat', href: '/', icon: MessageCircle },
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Gastos', href: '/expenses', icon: Receipt },
   { name: 'Proveedores', href: '/providers', icon: Building2 },
   { name: 'Cuentas', href: '/accounts', icon: Wallet },

@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { MainLayout } from './components/layout'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
+import { ChatPage } from './features/chat'
 import { ExpenseDetail, ExpenseForm, ExpenseList } from './features/expenses'
 import { ProviderList } from './features/providers'
 import { CostCentersPage } from './pages/CostCentersPage'
@@ -20,7 +21,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<ChatPage />} />
+            <Route path="/dashboard" element={<HomePage />} />
             <Route path="/expenses" element={<ExpenseList />} />
             <Route path="/expenses/new" element={<ExpenseForm />} />
             <Route path="/expenses/:id" element={<ExpenseDetail />} />

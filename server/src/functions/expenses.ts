@@ -2,7 +2,7 @@ import {
   onDocumentCreated,
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore'
-import { db } from '../index.js'
+import { db } from '../lib/db.js'
 
 // Recalculate expense status when a payment is created
 export const onPaymentCreated = onDocumentCreated(

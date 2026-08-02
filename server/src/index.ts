@@ -1,12 +1,6 @@
-import * as admin from 'firebase-admin'
-import type { Firestore } from 'firebase-admin/firestore'
-import type { Storage } from 'firebase-admin/storage'
-
-admin.initializeApp()
-
-export const db: Firestore = admin.firestore()
-export const storage: Storage = admin.storage()
+// Re-export db for convenience (but functions should import from lib/db directly)
 
 // Export functions
-export * from './functions/expenses.js'
-export * from './functions/users.js'
+export { onExpenseUpdated, onPaymentCreated } from './functions/expenses.js'
+export { getUserCompany, inviteUser } from './functions/users.js'
+export { db, storage } from './lib/db.js'

@@ -103,3 +103,35 @@ export interface ProviderFormData {
   email?: string
   phone?: string
 }
+
+// Chat types
+export interface ChatToolCall {
+  name: string
+  input: Record<string, unknown>
+  result: string
+}
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  toolCalls?: ChatToolCall[]
+  attachments?: ChatAttachment[]
+  createdAt: Date
+  isStreaming?: boolean
+}
+
+export interface ChatAttachment {
+  type: 'invoice' | 'voucher'
+  url: string
+  name: string
+  file?: File
+}
+
+export interface ChatSession {
+  id: string
+  userId: string
+  messages: ChatMessage[]
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
