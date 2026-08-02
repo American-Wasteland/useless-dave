@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addDoc,
   collection,
@@ -8,10 +9,9 @@ import {
   orderBy,
   query,
 } from 'firebase/firestore'
-import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '../features/auth'
 import { db } from '../lib/firebase'
 import type { CostCenter } from '../types'
+import { useCompanyId } from './useCompanyId'
 
 const getCostCentersCollection = (companyId: string) =>
   collection(db, 'companies', companyId, 'costCenters')
@@ -26,57 +26,75 @@ export async function getCostCenter(
   return { id: snapshot.id, ...snapshot.data() } as CostCenter
 }
 
+async function fetchCostCenters(companyId: string): Promise<CostCenter[]> {
+  const q = query(getCostCentersCollection(companyId), orderBy('name'))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() }) as CostCenter,
+  )
+}
+
+export const costCenterKeys = {
+  all: ['costCenters'] as const,
+  lists: () => [...costCenterKeys.all, 'list'] as const,
+  list: (companyId: string) => [...costCenterKeys.lists(), companyId] as const,
+}
+
 export function useCostCenters() {
-  const { companyId } = useAuth()
-  const [costCenters, setCostCenters] = useState<CostCenter[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const companyId = useCompanyId()
+  const queryClient = useQueryClient()
 
-  const fetchCostCenters = useCallback(async () => {
-    if (!companyId) return
+  const query = useQuery({
+    queryKey: costCenterKeys.list(companyId || ''),
+    queryFn: () => fetchCostCenters(companyId!),
+    enabled: !!companyId,
+  })
 
-    setIsLoading(true)
-    try {
-      const q = query(getCostCentersCollection(companyId), orderBy('name'))
-      const snapshot = await getDocs(q)
-      setCostCenters(
-        snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() }) as CostCenter,
-        ),
+  const createMutation = useMutation({
+    mutationFn: async ({
+      name,
+      description,
+    }: {
+      name: string
+      description?: string
+    }) => {
+      await addDoc(getCostCentersCollection(companyId!), {
+        name,
+        description: description || null,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: costCenterKeys.list(companyId!),
+      })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (costCenterId: string) => {
+      await deleteDoc(
+        doc(db, 'companies', companyId!, 'costCenters', costCenterId),
       )
-    } catch (error) {
-      console.error('Error fetching cost centers:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [companyId])
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: costCenterKeys.list(companyId!),
+      })
+    },
+  })
 
   const createCostCenter = async (name: string, description?: string) => {
-    if (!companyId) return
-
-    await addDoc(getCostCentersCollection(companyId), {
-      name,
-      description: description || null,
-    })
-    fetchCostCenters()
+    await createMutation.mutateAsync({ name, description })
   }
 
   const deleteCostCenter = async (costCenterId: string) => {
-    if (!companyId) return
-
-    await deleteDoc(
-      doc(db, 'companies', companyId, 'costCenters', costCenterId),
-    )
-    fetchCostCenters()
+    await deleteMutation.mutateAsync(costCenterId)
   }
 
-  useEffect(() => {
-    fetchCostCenters()
-  }, [fetchCostCenters])
-
   return {
-    costCenters,
-    isLoading,
-    refetch: fetchCostCenters,
+    costCenters: query.data ?? [],
+    isLoading: query.isLoading,
+    refetch: query.refetch,
     createCostCenter,
     deleteCostCenter,
   }

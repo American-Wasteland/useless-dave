@@ -3,10 +3,18 @@ import type { Timestamp } from 'firebase/firestore'
 export interface Company {
   id: string
   name: string
+  logoUrl?: string
   createdAt: Timestamp
+  createdBy: string
   settings?: {
     currency: 'COP'
   }
+}
+
+export interface CompanyMembership {
+  companyId: string
+  role: 'admin' | 'editor' | 'viewer'
+  joinedAt: Timestamp
 }
 
 export interface User {

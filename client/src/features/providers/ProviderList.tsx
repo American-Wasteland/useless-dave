@@ -1,13 +1,13 @@
 import { Building2, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Button } from '../../components/ui'
-import { useAuth } from '../auth'
 import { ProviderModal } from './ProviderModal'
 import { deleteProvider } from './providerService'
 import { useProviders } from './useProviders'
 
 export function ProviderList() {
-  const { companyId } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
   const { providers, isLoading, refetch } = useProviders()
   const [showModal, setShowModal] = useState(false)
 

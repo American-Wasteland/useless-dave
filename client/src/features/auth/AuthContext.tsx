@@ -5,116 +5,91 @@ import {
   onAuthStateChanged,
   signInWithPopup,
 } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, setDoc } from 'firebase/firestore'
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react'
 import { auth, db } from '../../lib/firebase'
-import type { Company, User } from '../../types'
+import type { Company } from '../../types'
+import { getUserCompanies } from '../company/companyService'
 
 interface AuthContextType {
   user: FirebaseUser | null
-  userData: User | null
-  company: Company | null
-  companyId: string | null
+  companies: Company[]
   loading: boolean
+  companiesLoaded: boolean
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  refreshCompanies: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const googleProvider = new GoogleAuthProvider()
 
-async function setupUserAndCompany(firebaseUser: FirebaseUser) {
-  const defaultCompanyId = 'default-company'
-
-  // Try to get user data
-  const userDocRef = doc(
-    db,
-    'companies',
-    defaultCompanyId,
-    'users',
-    firebaseUser.uid,
-  )
-  const userDoc = await getDoc(userDocRef)
-
-  let userData: User
-  if (userDoc.exists()) {
-    userData = { id: userDoc.id, ...userDoc.data() } as User
-  } else {
-    // Create default user entry
-    const newUser: Omit<User, 'id'> = {
-      email: firebaseUser.email || '',
-      role: 'admin',
-      modules: {
-        expenses: 'edit',
-      },
-    }
-    await setDoc(userDocRef, newUser)
-    userData = { id: firebaseUser.uid, ...newUser }
-  }
-
-  // Get or create company
-  const companyDocRef = doc(db, 'companies', defaultCompanyId)
-  const companyDoc = await getDoc(companyDocRef)
-
-  let company: Company
-  if (companyDoc.exists()) {
-    company = { id: companyDoc.id, ...companyDoc.data() } as Company
-  } else {
-    const newCompany = {
-      name: 'Mi Empresa',
-      createdAt: serverTimestamp(),
-      settings: { currency: 'COP' },
-    }
-    await setDoc(companyDocRef, newCompany)
-    company = {
-      id: defaultCompanyId,
-      ...newCompany,
-    } as unknown as Company
-  }
-
-  return { userData, company, companyId: defaultCompanyId }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
-  const [userData, setUserData] = useState<User | null>(null)
-  const [company, setCompany] = useState<Company | null>(null)
-  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
+  const [companiesLoaded, setCompaniesLoaded] = useState(false)
+
+  const fetchCompanies = useCallback(async (firebaseUser: FirebaseUser) => {
+    try {
+      console.log('Fetching companies for user:', firebaseUser.uid)
+
+      // Ensure user document exists
+      const userDocRef = doc(db, 'users', firebaseUser.uid)
+      console.log('Updating user doc...')
+      await setDoc(
+        userDocRef,
+        {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          updatedAt: new Date(),
+        },
+        { merge: true },
+      )
+      console.log('User doc updated, fetching companies...')
+
+      const userCompanies = await getUserCompanies(firebaseUser.uid)
+      console.log('Companies fetched:', userCompanies.length)
+      setCompanies(userCompanies)
+      setCompaniesLoaded(true)
+    } catch (error) {
+      console.error('Error fetching companies:', error)
+      setCompanies([])
+    }
+  }, [])
+
+  const refreshCompanies = async () => {
+    if (user) {
+      await fetchCompanies(user)
+    }
+  }
 
   // Listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser)
-
       if (firebaseUser) {
-        try {
-          const { userData, company, companyId } =
-            await setupUserAndCompany(firebaseUser)
-          setUserData(userData)
-          setCompany(company)
-          setCompanyId(companyId)
-        } catch (error) {
-          console.error('Error setting up user:', error)
-        }
+        setUser(firebaseUser)
+        await fetchCompanies(firebaseUser)
+        setLoading(false)
       } else {
-        setUserData(null)
-        setCompany(null)
-        setCompanyId(null)
+        setUser(null)
+        setCompanies([])
+        setCompaniesLoaded(false)
+        setLoading(false)
       }
-
-      setLoading(false)
     })
 
     return () => unsubscribe()
-  }, [])
+  }, [fetchCompanies])
 
   const signInWithGoogle = async () => {
     try {
@@ -133,12 +108,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        userData,
-        company,
-        companyId,
+        companies,
         loading,
+        companiesLoaded,
         signInWithGoogle,
         signOut,
+        refreshCompanies,
       }}
     >
       {children}

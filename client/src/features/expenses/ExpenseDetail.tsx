@@ -4,7 +4,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { formatCOP, formatDate } from '../../lib/utils'
 import type { ExpenseStatus } from '../../types'
-import { useAuth } from '../auth'
 import { deleteExpense } from './expenseService'
 import { PaymentForm } from './PaymentForm'
 import { useExpense } from './useExpense'
@@ -20,9 +19,11 @@ const statusConfig: Record<
 }
 
 export function ExpenseDetail() {
-  const { id = '' } = useParams<{ id: string }>()
+  const { id = '', companyId = '' } = useParams<{
+    id: string
+    companyId: string
+  }>()
   const navigate = useNavigate()
-  const { companyId } = useAuth()
   const { expense, isLoading, refetch: refetchExpense } = useExpense(id)
   const { payments, refetch: refetchPayments } = usePayments(id)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
@@ -35,7 +36,7 @@ export function ExpenseDetail() {
     setIsDeleting(true)
     try {
       await deleteExpense(companyId, id)
-      navigate('/expenses')
+      navigate(`/${companyId}/expenses`)
     } catch (error) {
       console.error('Error deleting expense:', error)
     } finally {
@@ -64,7 +65,7 @@ export function ExpenseDetail() {
           Gasto no encontrado
         </h2>
         <Link
-          to="/expenses"
+          to={`/${companyId}/expenses`}
           className="text-primary-600 hover:text-primary-700 mt-2 inline-block"
         >
           Volver a gastos
@@ -81,7 +82,7 @@ export function ExpenseDetail() {
     <div className="max-w-3xl">
       <div className="flex items-center gap-4 mb-6">
         <Link
-          to="/expenses"
+          to={`/${companyId}/expenses`}
           className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
         >
           <ArrowLeft className="h-5 w-5" />

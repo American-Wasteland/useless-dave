@@ -1,7 +1,7 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Button, Input, Modal } from '../../components/ui'
 import type { ProviderFormData } from '../../types'
-import { useAuth } from '../auth'
 import { createProvider } from './providerService'
 
 interface ProviderModalProps {
@@ -15,7 +15,7 @@ export function ProviderModal({
   onClose,
   onSuccess,
 }: ProviderModalProps) {
-  const { companyId } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<ProviderFormData>({
     name: '',

@@ -8,6 +8,12 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    // Company logos
+    match /logos/companies/{logoFile} {
+      allow read: if true; // Logos are public
+      allow write: if isAuthenticated();
+    }
+
     // Company files - invoices and vouchers
     match /companies/{companyId}/{allPaths=**} {
       // Allow read/write for authenticated users

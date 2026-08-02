@@ -5,13 +5,15 @@ import {
   Receipt,
   Wallet,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../features/auth'
 import { useExpenses } from '../features/expenses'
 import { formatCOP } from '../lib/utils'
 
 export function HomePage() {
-  const { user, company } = useAuth()
+  const { user, companies } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
+  const company = companies.find((c) => c.id === companyId)
   const { expenses } = useExpenses()
 
   const pendingExpenses = expenses.filter((e) => e.status === 'pending')
@@ -92,7 +94,7 @@ export function HomePage() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Link
-          to="/expenses/new"
+          to={`/${companyId}/expenses/new`}
           className="card p-6 hover:border-primary-300 hover:shadow-md transition-all group"
         >
           <div className="flex items-center justify-between">
@@ -110,7 +112,7 @@ export function HomePage() {
         </Link>
 
         <Link
-          to="/expenses"
+          to={`/${companyId}/expenses`}
           className="card p-6 hover:border-primary-300 hover:shadow-md transition-all group"
         >
           <div className="flex items-center justify-between">

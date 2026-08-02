@@ -1,30 +1,57 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { Provider } from '../../types'
-import { useAuth } from '../auth'
-import { getProviders } from './providerService'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCompanyId } from '../../hooks/useCompanyId'
+import type { ProviderFormData } from '../../types'
+import { createProvider, deleteProvider, getProviders } from './providerService'
+
+export const providerKeys = {
+  all: ['providers'] as const,
+  lists: () => [...providerKeys.all, 'list'] as const,
+  list: (companyId: string) => [...providerKeys.lists(), companyId] as const,
+  details: () => [...providerKeys.all, 'detail'] as const,
+  detail: (companyId: string, id: string) =>
+    [...providerKeys.details(), companyId, id] as const,
+}
 
 export function useProviders() {
-  const { companyId } = useAuth()
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const companyId = useCompanyId()
 
-  const fetchProviders = useCallback(async () => {
-    if (!companyId) return
+  const query = useQuery({
+    queryKey: providerKeys.list(companyId || ''),
+    queryFn: () => getProviders(companyId!),
+    enabled: !!companyId,
+  })
 
-    setIsLoading(true)
-    try {
-      const data = await getProviders(companyId)
-      setProviders(data)
-    } catch (error) {
-      console.error('Error fetching providers:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [companyId])
+  return {
+    providers: query.data ?? [],
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  }
+}
 
-  useEffect(() => {
-    fetchProviders()
-  }, [fetchProviders])
+export function useCreateProvider() {
+  const companyId = useCompanyId()
+  const queryClient = useQueryClient()
 
-  return { providers, isLoading, refetch: fetchProviders }
+  return useMutation({
+    mutationFn: (data: ProviderFormData) => createProvider(companyId!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: providerKeys.list(companyId!),
+      })
+    },
+  })
+}
+
+export function useDeleteProvider() {
+  const companyId = useCompanyId()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (providerId: string) => deleteProvider(companyId!, providerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: providerKeys.list(companyId!),
+      })
+    },
+  })
 }

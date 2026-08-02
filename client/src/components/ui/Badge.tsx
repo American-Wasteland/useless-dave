@@ -12,10 +12,10 @@ export function Badge({
   className,
 }: BadgeProps) {
   const variants = {
-    default: 'bg-gray-100 text-gray-700',
-    success: 'bg-green-100 text-green-700',
-    warning: 'bg-yellow-100 text-yellow-700',
-    danger: 'bg-red-100 text-red-700',
+    default: 'bg-muted text-muted-foreground',
+    success: 'bg-chart-1/20 text-chart-1',
+    warning: 'bg-chart-2/20 text-chart-2',
+    danger: 'bg-destructive/20 text-destructive',
   }
 
   return (

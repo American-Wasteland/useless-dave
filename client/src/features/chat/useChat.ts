@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import type { ChatAttachment, ChatMessage, ChatToolCall } from '../../types'
-import { useAuth } from '../auth'
 import {
   isDoneEvent,
   isErrorEvent,
@@ -12,7 +12,7 @@ import {
 } from './chatService'
 
 export function useChat() {
-  const { companyId } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)

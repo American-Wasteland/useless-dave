@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react'
 import { cn } from '../../lib/utils'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
 }
@@ -21,16 +21,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none'
+      'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:pointer-events-none'
 
     const variants = {
-      primary:
-        'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-      secondary:
-        'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-primary-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-      ghost:
-        'text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:ring-gray-500',
+      primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+      danger:
+        'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+      ghost: 'hover:bg-accent hover:text-accent-foreground',
+      outline:
+        'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
     }
 
     const sizes = {

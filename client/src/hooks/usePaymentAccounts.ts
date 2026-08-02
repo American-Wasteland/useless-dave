@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addDoc,
   collection,
@@ -7,70 +8,92 @@ import {
   orderBy,
   query,
 } from 'firebase/firestore'
-import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '../features/auth'
 import { db } from '../lib/firebase'
 import type { PaymentAccount } from '../types'
+import { useCompanyId } from './useCompanyId'
 
 const getPaymentAccountsCollection = (companyId: string) =>
   collection(db, 'companies', companyId, 'paymentAccounts')
 
+async function fetchPaymentAccounts(
+  companyId: string,
+): Promise<PaymentAccount[]> {
+  const q = query(getPaymentAccountsCollection(companyId), orderBy('name'))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(
+    (doc) => ({ id: doc.id, ...doc.data() }) as PaymentAccount,
+  )
+}
+
+export const paymentAccountKeys = {
+  all: ['paymentAccounts'] as const,
+  lists: () => [...paymentAccountKeys.all, 'list'] as const,
+  list: (companyId: string) =>
+    [...paymentAccountKeys.lists(), companyId] as const,
+}
+
 export function usePaymentAccounts() {
-  const { companyId } = useAuth()
-  const [paymentAccounts, setPaymentAccounts] = useState<PaymentAccount[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const companyId = useCompanyId()
+  const queryClient = useQueryClient()
 
-  const fetchPaymentAccounts = useCallback(async () => {
-    if (!companyId) return
+  const query = useQuery({
+    queryKey: paymentAccountKeys.list(companyId || ''),
+    queryFn: () => fetchPaymentAccounts(companyId!),
+    enabled: !!companyId,
+  })
 
-    setIsLoading(true)
-    try {
-      const q = query(getPaymentAccountsCollection(companyId), orderBy('name'))
-      const snapshot = await getDocs(q)
-      setPaymentAccounts(
-        snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() }) as PaymentAccount,
-        ),
+  const createMutation = useMutation({
+    mutationFn: async ({
+      name,
+      type,
+      details,
+    }: {
+      name: string
+      type: 'bank' | 'cash' | 'card'
+      details?: string
+    }) => {
+      await addDoc(getPaymentAccountsCollection(companyId!), {
+        name,
+        type,
+        details: details || null,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: paymentAccountKeys.list(companyId!),
+      })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (accountId: string) => {
+      await deleteDoc(
+        doc(db, 'companies', companyId!, 'paymentAccounts', accountId),
       )
-    } catch (error) {
-      console.error('Error fetching payment accounts:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [companyId])
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: paymentAccountKeys.list(companyId!),
+      })
+    },
+  })
 
   const createPaymentAccount = async (
     name: string,
     type: 'bank' | 'cash' | 'card',
     details?: string,
   ) => {
-    if (!companyId) return
-
-    await addDoc(getPaymentAccountsCollection(companyId), {
-      name,
-      type,
-      details: details || null,
-    })
-    fetchPaymentAccounts()
+    await createMutation.mutateAsync({ name, type, details })
   }
 
   const deletePaymentAccount = async (accountId: string) => {
-    if (!companyId) return
-
-    await deleteDoc(
-      doc(db, 'companies', companyId, 'paymentAccounts', accountId),
-    )
-    fetchPaymentAccounts()
+    await deleteMutation.mutateAsync(accountId)
   }
 
-  useEffect(() => {
-    fetchPaymentAccounts()
-  }, [fetchPaymentAccounts])
-
   return {
-    paymentAccounts,
-    isLoading,
-    refetch: fetchPaymentAccounts,
+    paymentAccounts: query.data ?? [],
+    isLoading: query.isLoading,
+    refetch: query.refetch,
     createPaymentAccount,
     deletePaymentAccount,
   }

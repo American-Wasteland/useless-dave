@@ -10,8 +10,10 @@ service cloud.firestore {
 
     // Helper function to check if user belongs to company
     function isCompanyMember(companyId) {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/companies/$(companyId)/users/$(request.auth.uid));
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/memberships/$(companyId)) ||
+        exists(/databases/$(database)/documents/companies/$(companyId)/users/$(request.auth.uid))
+      );
     }
 
     // Helper function to get user's role in company
@@ -29,9 +31,18 @@ service cloud.firestore {
       return isCompanyMember(companyId) && getUserRole(companyId) in ['admin', 'editor'];
     }
 
+    // User memberships collection (for querying which companies a user belongs to)
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+
+      match /memberships/{companyId} {
+        allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      }
+    }
+
     // Company level access
     match /companies/{companyId} {
-      // Allow read if member, allow create if authenticated (for bootstrapping)
+      // Allow read if user is authenticated and has membership
       allow read: if isCompanyMember(companyId);
       allow create: if isAuthenticated();
       allow update, delete: if isAdmin(companyId);

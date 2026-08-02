@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FileUpload, Input, Select } from '../../components/ui'
 import { useCostCenters } from '../../hooks/useCostCenters'
 import { formatDateInput } from '../../lib/utils'
@@ -11,7 +11,8 @@ import { createExpense } from './expenseService'
 
 export function ExpenseForm() {
   const navigate = useNavigate()
-  const { user, companyId } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
+  const { user } = useAuth()
   const { providers, refetch: refetchProviders } = useProviders()
   const { costCenters } = useCostCenters()
 
@@ -50,8 +51,8 @@ export function ExpenseForm() {
 
     setIsLoading(true)
     try {
-      await createExpense(companyId, user.uid, formData)
-      navigate('/expenses')
+      await createExpense(companyId!, user.uid, formData)
+      navigate(`/${companyId}/expenses`)
     } catch (error) {
       console.error('Error creating expense:', error)
     } finally {

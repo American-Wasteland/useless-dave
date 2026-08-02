@@ -1,48 +1,43 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useCompanyId } from '../../hooks/useCompanyId'
 import { getCostCenter } from '../../hooks/useCostCenters'
 import type { Expense } from '../../types'
-import { useAuth } from '../auth'
 import { getProvider } from '../providers/providerService'
 import { getExpense } from './expenseService'
+import { expenseKeys } from './useExpenses'
+
+async function fetchExpenseWithRelations(
+  companyId: string,
+  expenseId: string,
+): Promise<Expense | null> {
+  const data = await getExpense(companyId, expenseId)
+
+  if (!data) return null
+
+  const [provider, costCenter] = await Promise.all([
+    getProvider(companyId, data.providerId).catch(() => null),
+    getCostCenter(companyId, data.costCenterId).catch(() => null),
+  ])
+
+  return {
+    ...data,
+    provider: provider || undefined,
+    costCenter: costCenter || undefined,
+  }
+}
 
 export function useExpense(expenseId: string) {
-  const { companyId } = useAuth()
-  const [expense, setExpense] = useState<Expense | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const companyId = useCompanyId()
 
-  const fetchExpense = useCallback(async () => {
-    if (!companyId || !expenseId) return
+  const query = useQuery({
+    queryKey: expenseKeys.detail(companyId || '', expenseId),
+    queryFn: () => fetchExpenseWithRelations(companyId!, expenseId),
+    enabled: !!companyId && !!expenseId,
+  })
 
-    setIsLoading(true)
-    try {
-      const data = await getExpense(companyId, expenseId)
-
-      if (data) {
-        // Enrich with provider and cost center data
-        const [provider, costCenter] = await Promise.all([
-          getProvider(companyId, data.providerId).catch(() => null),
-          getCostCenter(companyId, data.costCenterId).catch(() => null),
-        ])
-
-        setExpense({
-          ...data,
-          provider: provider || undefined,
-          costCenter: costCenter || undefined,
-        })
-      } else {
-        setExpense(null)
-      }
-    } catch (error) {
-      console.error('Error fetching expense:', error)
-      setExpense(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [companyId, expenseId])
-
-  useEffect(() => {
-    fetchExpense()
-  }, [fetchExpense])
-
-  return { expense, isLoading, refetch: fetchExpense }
+  return {
+    expense: query.data ?? null,
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  }
 }

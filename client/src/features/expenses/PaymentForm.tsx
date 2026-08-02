@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Button, FileUpload, Input, Modal, Select } from '../../components/ui'
 import { usePaymentAccounts } from '../../hooks/usePaymentAccounts'
 import { formatCOP, formatDateInput } from '../../lib/utils'
 import type { PaymentFormData } from '../../types'
-import { useAuth } from '../auth'
 import { createPayment } from './expenseService'
 
 interface PaymentFormProps {
@@ -19,7 +19,7 @@ export function PaymentForm({
   onClose,
   onSuccess,
 }: PaymentFormProps) {
-  const { companyId } = useAuth()
+  const { companyId } = useParams<{ companyId: string }>()
   const { paymentAccounts } = usePaymentAccounts()
 
   const [isLoading, setIsLoading] = useState(false)

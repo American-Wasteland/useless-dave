@@ -1,5 +1,5 @@
 import { FileText, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { formatCOP, formatDate } from '../../lib/utils'
 import type { ExpenseStatus } from '../../types'
@@ -15,6 +15,7 @@ const statusConfig: Record<
 }
 
 export function ExpenseList() {
+  const { companyId } = useParams<{ companyId: string }>()
   const { expenses, isLoading } = useExpenses()
 
   if (isLoading) {
@@ -29,7 +30,7 @@ export function ExpenseList() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gastos</h1>
-        <Link to="/expenses/new">
+        <Link to={`/${companyId}/expenses/new`}>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Gasto
@@ -46,7 +47,7 @@ export function ExpenseList() {
           <p className="text-gray-500 mb-4">
             Comienza registrando tu primer gasto
           </p>
-          <Link to="/expenses/new">
+          <Link to={`/${companyId}/expenses/new`}>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Gasto
@@ -100,7 +101,7 @@ export function ExpenseList() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                       <Link
-                        to={`/expenses/${expense.id}`}
+                        to={`/${companyId}/expenses/${expense.id}`}
                         className="text-primary-600 hover:text-primary-700 font-medium"
                       >
                         Ver
