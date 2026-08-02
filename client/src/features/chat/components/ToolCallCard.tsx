@@ -1,14 +1,13 @@
 import {
   Building2,
   Check,
-  ChevronDown,
-  ChevronUp,
   CreditCard,
   FolderKanban,
+  Loader2,
   Receipt,
   Search,
+  Tag,
 } from 'lucide-react'
-import { useState } from 'react'
 import { cn } from '../../../lib/utils'
 import type { ChatToolCall } from '../../../types'
 
@@ -17,87 +16,223 @@ interface ToolCallCardProps {
   isStreaming?: boolean
 }
 
-const TOOL_ICONS: Record<string, typeof Search> = {
-  search_providers: Search,
-  search_cost_centers: Search,
-  search_payment_accounts: Search,
-  create_provider: Building2,
-  create_cost_center: FolderKanban,
-  create_expense: Receipt,
-  record_payment: CreditCard,
-  get_recent_expenses: Receipt,
-  get_expense_details: Receipt,
+type ToolConfig = {
+  icon: typeof Search
+  label: string
+  color: string
+  bgColor: string
 }
 
-const TOOL_LABELS: Record<string, string> = {
-  search_providers: 'Buscando proveedores',
-  search_cost_centers: 'Buscando centros de costo',
-  search_payment_accounts: 'Buscando cuentas de pago',
-  create_provider: 'Creando proveedor',
-  create_cost_center: 'Creando centro de costo',
-  create_expense: 'Registrando gasto',
-  record_payment: 'Registrando pago',
-  get_recent_expenses: 'Obteniendo gastos recientes',
-  get_expense_details: 'Obteniendo detalles del gasto',
+const TOOL_CONFIG: Record<string, ToolConfig> = {
+  search_accounting_categories: {
+    icon: Search,
+    label: 'Buscando categorías',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+  },
+  create_accounting_category: {
+    icon: Tag,
+    label: 'Creando categoría',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+  },
+  search_providers: {
+    icon: Search,
+    label: 'Buscando proveedores',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+  },
+  search_cost_centers: {
+    icon: Search,
+    label: 'Buscando centros de costo',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+  },
+  search_payment_accounts: {
+    icon: Search,
+    label: 'Buscando cuentas',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+  },
+  create_provider: {
+    icon: Building2,
+    label: 'Creando proveedor',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100',
+  },
+  create_cost_center: {
+    icon: FolderKanban,
+    label: 'Creando centro de costo',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-100',
+  },
+  create_expense: {
+    icon: Receipt,
+    label: 'Registrando gasto',
+    color: 'text-rose-600',
+    bgColor: 'bg-rose-100',
+  },
+  record_payment: {
+    icon: CreditCard,
+    label: 'Registrando pago',
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+  },
+  get_recent_expenses: {
+    icon: Receipt,
+    label: 'Consultando gastos',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+  },
+}
+
+function formatInputValue(key: string, value: unknown): string {
+  if (typeof value === 'number') {
+    if (
+      key.toLowerCase().includes('amount') ||
+      key.toLowerCase().includes('total')
+    ) {
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+      }).format(value)
+    }
+    return value.toString()
+  }
+  return String(value)
+}
+
+function InputPreview({ input }: { input: Record<string, unknown> }) {
+  const entries = Object.entries(input).filter(
+    ([, v]) => v !== undefined && v !== '',
+  )
+
+  if (entries.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {entries.map(([key, value]) => (
+        <span
+          key={key}
+          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/50 text-xs"
+        >
+          <span className="text-muted-foreground">{key}:</span>
+          <span className="font-medium">{formatInputValue(key, value)}</span>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function ResultPreview({
+  result,
+  isCreate,
+}: {
+  result: string
+  isCreate: boolean
+}) {
+  // Parse result for created items
+  if (isCreate && result.includes('ID:')) {
+    const lines = result.split('\n').filter(Boolean)
+    return (
+      <div className="mt-2 p-3 rounded-xl bg-white border-2 border-border shadow-sm">
+        <div className="flex items-center gap-2 mb-2">
+          <Check className="h-4 w-4 text-green-600" />
+          <span className="font-bold text-sm text-green-700">Creado</span>
+        </div>
+        <div className="space-y-1">
+          {lines.map((line, i) => {
+            const cleaned = line.replace(/^-\s*/, '')
+            const [label, value] = cleaned.split(':').map((s) => s.trim())
+            if (!value)
+              return (
+                <p key={i} className="text-sm">
+                  {cleaned}
+                </p>
+              )
+            return (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">{label}:</span>
+                <span className="font-medium">{value}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // Search results
+  if (result.includes('Encontré')) {
+    return (
+      <div className="mt-2 p-3 rounded-xl bg-white border-2 border-border shadow-sm">
+        <pre className="text-sm whitespace-pre-wrap">{result}</pre>
+      </div>
+    )
+  }
+
+  // Not found
+  if (result.includes('No encontré')) {
+    return (
+      <div className="mt-2 p-3 rounded-xl bg-amber-50 border-2 border-amber-200">
+        <p className="text-sm text-amber-800">{result}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-2 p-3 rounded-xl bg-white border-2 border-border shadow-sm">
+      <pre className="text-sm whitespace-pre-wrap">{result}</pre>
+    </div>
+  )
 }
 
 export function ToolCallCard({ toolCall, isStreaming }: ToolCallCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const config = TOOL_CONFIG[toolCall.name] || {
+    icon: Search,
+    label: toolCall.name,
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+  }
 
-  const Icon = TOOL_ICONS[toolCall.name] || Search
-  const label = TOOL_LABELS[toolCall.name] || toolCall.name
+  const Icon = config.icon
+  const isCreate = toolCall.name.startsWith('create_')
+  const hasResult = !!toolCall.result
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white text-sm">
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
-      >
+    <div
+      className={cn(
+        'rounded-2xl p-3 text-sm transition-all',
+        config.bgColor,
+        isStreaming && 'animate-pulse',
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2">
         <div
           className={cn(
-            'flex h-6 w-6 items-center justify-center rounded',
-            isStreaming
-              ? 'animate-pulse bg-amber-100 text-amber-600'
-              : 'bg-emerald-100 text-emerald-600',
+            'flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-sm',
+            config.color,
           )}
         >
           {isStreaming ? (
-            <Icon className="h-3.5 w-3.5" />
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : hasResult ? (
+            <Check className="h-4 w-4" />
           ) : (
-            <Check className="h-3.5 w-3.5" />
+            <Icon className="h-4 w-4" />
           )}
         </div>
-        <span className="flex-1 text-gray-700">{label}</span>
-        {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-gray-400" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-gray-400" />
-        )}
-      </button>
+        <span className={cn('font-bold', config.color)}>{config.label}</span>
+      </div>
 
-      {isExpanded && (
-        <div className="border-t border-gray-100 px-3 py-2 space-y-2">
-          {/* Input */}
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Entrada:</p>
-            <pre className="text-xs text-gray-600 bg-gray-50 rounded p-2 overflow-x-auto">
-              {JSON.stringify(toolCall.input, null, 2)}
-            </pre>
-          </div>
+      {/* Input preview */}
+      <InputPreview input={toolCall.input} />
 
-          {/* Result */}
-          {toolCall.result && (
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">
-                Resultado:
-              </p>
-              <pre className="text-xs text-gray-600 bg-gray-50 rounded p-2 overflow-x-auto whitespace-pre-wrap">
-                {toolCall.result}
-              </pre>
-            </div>
-          )}
-        </div>
+      {/* Result */}
+      {hasResult && (
+        <ResultPreview result={toolCall.result} isCreate={isCreate} />
       )}
     </div>
   )

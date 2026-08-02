@@ -6,6 +6,7 @@ import {
   LogOut,
   MessageCircle,
   Receipt,
+  Tags,
   Wallet,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -18,6 +19,7 @@ const navigationItems = [
   { name: 'Dashboard', path: 'dashboard', icon: Home },
   { name: 'Gastos', path: 'expenses', icon: Receipt },
   { name: 'Proveedores', path: 'providers', icon: Building2 },
+  { name: 'Categorías', path: 'categories', icon: Tags },
   { name: 'Cuentas', path: 'accounts', icon: Wallet },
   { name: 'Centros de Costo', path: 'cost-centers', icon: FolderKanban },
 ]

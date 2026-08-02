@@ -1,13 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { MainLayout } from './components/layout'
+import { ChatLayout } from './components/layout'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
-import { ChatPage } from './features/chat'
+import { CommandView } from './features/commands/CommandView'
+import { CommandPanel } from './features/commands/components'
 import { CompanySelector, CreateCompanyPage } from './features/company'
-import { ExpenseDetail, ExpenseForm, ExpenseList } from './features/expenses'
-import { ProviderList } from './features/providers'
-import { CostCentersPage } from './pages/CostCentersPage'
-import { HomePage } from './pages/HomePage'
-import { PaymentAccountsPage } from './pages/PaymentAccountsPage'
+import { CategoriesPanel } from './pages/panels/CategoriesPanel'
 
 function App() {
   return (
@@ -37,23 +34,22 @@ function App() {
             }
           />
 
-          {/* Company-scoped routes */}
+          {/* Company-scoped routes - Command-first layout */}
           <Route
             path="/:companyId"
             element={
               <ProtectedRoute>
-                <MainLayout />
+                <ChatLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<ChatPage />} />
-            <Route path="dashboard" element={<HomePage />} />
-            <Route path="expenses" element={<ExpenseList />} />
-            <Route path="expenses/new" element={<ExpenseForm />} />
-            <Route path="expenses/:id" element={<ExpenseDetail />} />
-            <Route path="providers" element={<ProviderList />} />
-            <Route path="cost-centers" element={<CostCentersPage />} />
-            <Route path="accounts" element={<PaymentAccountsPage />} />
+            {/* Command view is always rendered, panels overlay via Outlet */}
+            <Route element={<CommandView />}>
+              <Route index element={null} />
+              <Route path="categories" element={<CategoriesPanel />} />
+              {/* Command panels */}
+              <Route path="comando/:commandId" element={<CommandPanel />} />
+            </Route>
           </Route>
 
           {/* Root redirect - handled by ProtectedRoute */}

@@ -1,7 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+
+/* Geist Mono from Google Fonts */
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/geistmono/v6/or3yQ6H-1_WfwkMZI_qYPLs1a-t7PU0AbeE9KK5Z5Cl4PuCTfNjENg.woff2) format('woff2');
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -154,8 +162,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: 'Geist Variable', sans-serif;
-  --font-mono: JetBrains Mono, monospace;
+  --font-sans: 'Geist Mono', ui-monospace, monospace;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-serif: serif;
 
   --radius-sm: calc(var(--radius) - 4px);

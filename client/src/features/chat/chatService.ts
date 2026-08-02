@@ -63,6 +63,7 @@ export async function sendChatMessage(
   message: string,
   attachments: ChatAttachment[],
   sessionId: string | null,
+  companyId: string,
   onEvent: ChatEventHandler,
 ): Promise<string | null> {
   const url = `${API_URL}/chat`
@@ -75,6 +76,7 @@ export async function sendChatMessage(
     body: JSON.stringify({
       message,
       sessionId,
+      companyId,
       attachments: attachments
         .filter((a) => a.url)
         .map((a) => ({

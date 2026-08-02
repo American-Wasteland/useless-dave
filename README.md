@@ -18,7 +18,7 @@ A lightweight, fun ERP system designed for small businesses. Named after the pun
 ## Features
 
 - **Multi-Company Support** - Users can create and belong to multiple companies with isolated data
-- **AI Assistant (Dave)** - Chat interface powered by Gemini
+- **Command System** - Terminal-style command palette with deterministic operations
 
 ## Project Structure
 

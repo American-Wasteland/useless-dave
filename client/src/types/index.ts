@@ -30,20 +30,62 @@ export interface User {
   }
 }
 
-export interface Provider {
+export type PersonType = 'individual' | 'business'
+
+export interface ThirdParty {
   id: string
   name: string
-  rut: string
+  type: PersonType
+  documentNumber: string
+  rutUrl?: string
   address?: string
   email?: string
   phone?: string
+  isActive: boolean
   createdAt: Timestamp
+  updatedAt?: Timestamp
 }
+
+export interface ProviderBankInfo {
+  bankName: string
+  accountType: 'ahorros' | 'corriente'
+  accountNumber: string
+}
+
+export interface ProviderDefaultRetentions {
+  retefuenteRate?: number
+  appliesToReteIva?: boolean
+  reteIcaRate?: number
+}
+
+export interface Provider extends ThirdParty {
+  bankInfo?: ProviderBankInfo
+  defaultRetentions?: ProviderDefaultRetentions
+}
+
+export interface Client extends ThirdParty {}
+
+export type CostCenterType = 'project' | 'operation'
+export type CostCenterStatus = 'active' | 'completed' | 'cancelled'
 
 export interface CostCenter {
   id: string
   name: string
   description?: string
+  type: CostCenterType
+  client?: Client
+  status: CostCenterStatus
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+}
+
+export interface Category {
+  id: string
+  name: string
+  description?: string
+  isActive: boolean
+  createdAt: Timestamp
+  updatedAt?: Timestamp
 }
 
 export interface PaymentAccount {
@@ -53,21 +95,66 @@ export interface PaymentAccount {
   details?: string
 }
 
-export type ExpenseStatus = 'pending' | 'partial' | 'paid'
+export type ExpenseWorkflowStatus =
+  | 'draft'
+  | 'requested'
+  | 'approved'
+  | 'paid'
+  | 'closed'
+export type PaymentStatus = 'pending' | 'partial' | 'paid'
+export type ExpenseDocumentType =
+  | 'quotation'
+  | 'invoice'
+  | 'cuenta_cobro'
+  | 'voucher'
+  | 'other'
+
+export interface TaxRetentions {
+  retefuente: number
+  reteIva: number
+  reteIca: number
+}
+
+export interface ExpenseDocument {
+  id: string
+  type: ExpenseDocumentType
+  url: string
+  fileName: string
+  uploadedBy: string
+  uploadedAt: Timestamp
+  notes?: string
+}
+
+export interface StatusHistoryEntry {
+  from: ExpenseWorkflowStatus | null
+  to: ExpenseWorkflowStatus
+  changedBy: string
+  changedAt: Timestamp
+  notes?: string
+}
 
 export interface Expense {
   id: string
-  providerId: string
-  provider?: Provider
+  categoryId?: string
+  costCenterId?: string
+  providerId?: string
+  labels: string[]
+  subtotal: number
+  ivaAmount: number
   totalAmount: number
-  taxDeductions: number
-  costCenterId: string
-  costCenter?: CostCenter
-  date: Timestamp
+  retentions: TaxRetentions
+  netPayable: number
   description: string
-  status: ExpenseStatus
-  invoiceUrl?: string
-  voucherUrl?: string
+  date: Timestamp
+  paymentDueDate?: Timestamp
+  workflowStatus: ExpenseWorkflowStatus
+  paymentStatus: PaymentStatus
+  statusHistory: StatusHistoryEntry[]
+  requestedBy?: string
+  approvedBy?: string
+  paidBy?: string
+  closedBy?: string
+  documents: ExpenseDocument[]
   createdBy: string
   createdAt: Timestamp
   updatedAt: Timestamp
@@ -82,6 +169,7 @@ export interface Payment {
   date: Timestamp
   notes?: string
   voucherUrl?: string
+  executedBy: string
   createdAt: Timestamp
 }
 
@@ -104,13 +192,23 @@ export interface PaymentFormData {
   voucherFile?: File
 }
 
-export interface ProviderFormData {
+export interface ThirdPartyFormData {
   name: string
-  rut: string
+  type: PersonType
+  documentNumber: string
+  rutFile?: File
   address?: string
   email?: string
   phone?: string
+  isActive?: boolean
 }
+
+export interface ProviderFormData extends ThirdPartyFormData {
+  bankInfo?: ProviderBankInfo
+  defaultRetentions?: ProviderDefaultRetentions
+}
+
+export interface ClientFormData extends ThirdPartyFormData {}
 
 // Chat types
 export interface ChatToolCall {

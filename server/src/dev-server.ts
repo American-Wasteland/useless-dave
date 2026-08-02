@@ -1,14 +1,20 @@
 import 'dotenv/config'
-import { type Content, GoogleGenerativeAI } from '@google/generative-ai'
 import cors from 'cors'
 import express from 'express'
 import { db } from './lib/db.js'
 import {
-  executeTool,
-  SYSTEM_PROMPT,
-  type ToolContext,
-  toolSchemas,
-} from './tools/index.js'
+  createAccountingCategory,
+  createCostCenter,
+  createExpense,
+  createProvider,
+  getRecentExpenses,
+  recordPayment,
+  searchAccountingCategories,
+  searchCostCenters,
+  searchPaymentAccounts,
+  searchProviders,
+} from './tools/handlers.js'
+import type { ToolContext } from './tools/index.js'
 
 const app = express()
 app.use(cors())
@@ -16,144 +22,228 @@ app.use(express.json())
 
 const PORT = process.env.PORT || 3000
 
-interface ChatRequest {
-  message: string
-  sessionId?: string
-  attachments?: Array<{
-    type: 'invoice' | 'voucher'
-    url: string
-    name: string
-  }>
+// Middleware to build tool context
+const getContext = (companyId: string): ToolContext => {
+  const userId = 'dev-user' // TODO: Get from auth
+  return { db, companyId, userId }
 }
 
-// Simple in-memory session storage for dev
-const sessions = new Map<string, Content[]>()
-
-app.post('/chat', async (req, res) => {
+// Accounting categories
+app.post('/commands/buscar-categoria-contable', async (req, res) => {
   try {
-    const body = req.body as ChatRequest
-    const { message, sessionId, attachments } = body
-
-    if (!message?.trim()) {
-      res.status(400).json({ error: 'Message is required' })
+    const { companyId, query } = req.body
+    if (!companyId || !query) {
+      res.status(400).json({ error: 'companyId and query required' })
       return
     }
-
-    // For dev, use a fixed company/user
-    const companyId = 'default-company'
-    const userId = 'dev-user'
-
-    // Get or create session
-    const currentSessionId = sessionId || `session-${Date.now()}`
-    const sessionHistory = sessions.get(currentSessionId) || []
-
-    // Build user message
-    let userMessageContent = message
-    if (attachments?.length) {
-      const list = attachments
-        .map((a) => `- ${a.type}: ${a.name} (URL: ${a.url})`)
-        .join('\n')
-      userMessageContent += `\n\n[Archivos adjuntos:\n${list}]`
-    }
-
-    // Initialize Gemini
-    const apiKey = process.env.GOOGLE_API_KEY
-    if (!apiKey) throw new Error('GOOGLE_API_KEY is not set')
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-flash-latest',
-      systemInstruction: SYSTEM_PROMPT,
-      tools: [{ functionDeclarations: toolSchemas }],
+    const result = await searchAccountingCategories(getContext(companyId), {
+      query,
     })
-
-    const toolCtx: ToolContext = { db, companyId, userId }
-
-    // Set up SSE
-    res.setHeader('Content-Type', 'text/event-stream')
-    res.setHeader('Cache-Control', 'no-cache')
-    res.setHeader('Connection', 'keep-alive')
-    res.setHeader('X-Session-Id', currentSessionId)
-
-    const sendEvent = (event: string, data: unknown) => {
-      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
-    }
-
-    const toolCalls: Array<{
-      name: string
-      input: Record<string, unknown>
-      result: string
-    }> = []
-    let fullResponse = ''
-
-    // Start chat with history
-    const chat = model.startChat({ history: sessionHistory })
-
-    let result = await chat.sendMessage(userMessageContent)
-    let response = result.response
-
-    // Handle tool calls in a loop
-    let functionCalls = response.functionCalls()
-    while (functionCalls?.length) {
-      const toolResults = []
-      for (const call of functionCalls) {
-        sendEvent('tool_call', { name: call.name, input: call.args })
-
-        const toolResult = await executeTool(
-          toolCtx,
-          call.name,
-          call.args as Record<string, unknown>,
-        )
-        toolCalls.push({
-          name: call.name,
-          input: call.args as Record<string, unknown>,
-          result: toolResult,
-        })
-
-        sendEvent('tool_result', { name: call.name, result: toolResult })
-
-        toolResults.push({
-          functionResponse: {
-            name: call.name,
-            response: { result: toolResult },
-          },
-        })
-      }
-
-      // Send tool results back to the model
-      result = await chat.sendMessage(toolResults)
-      response = result.response
-      functionCalls = response.functionCalls()
-    }
-
-    // Get final text response
-    fullResponse = response.text()
-    sendEvent('text', { text: fullResponse })
-
-    // Update session history
-    const newHistory = await chat.getHistory()
-    sessions.set(currentSessionId, newHistory)
-
-    sendEvent('done', {
-      sessionId: currentSessionId,
-      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-    })
-    res.end()
+    res.json({ success: true, result })
   } catch (error) {
-    console.error('Chat error:', error)
-    if (!res.headersSent) {
-      res.status(500).json({
-        error: error instanceof Error ? error.message : 'Internal error',
-      })
-    } else {
-      res.write(
-        `event: error\ndata: ${JSON.stringify({ message: error instanceof Error ? error.message : 'Unknown error' })}\n\n`,
-      )
-      res.end()
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/commands/crear-categoria-contable', async (req, res) => {
+  try {
+    const { companyId, name, description } = req.body
+    if (!companyId || !name) {
+      res.status(400).json({ error: 'companyId and name required' })
+      return
     }
+    const result = await createAccountingCategory(getContext(companyId), {
+      name,
+      description,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// Providers
+app.post('/commands/buscar-proveedor', async (req, res) => {
+  try {
+    const { companyId, query } = req.body
+    if (!companyId || !query) {
+      res.status(400).json({ error: 'companyId and query required' })
+      return
+    }
+    const result = await searchProviders(getContext(companyId), { query })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/commands/crear-proveedor', async (req, res) => {
+  try {
+    const { companyId, name, rut, address, phone, email } = req.body
+    if (!companyId || !name || !rut) {
+      res.status(400).json({ error: 'companyId, name, and rut required' })
+      return
+    }
+    const result = await createProvider(getContext(companyId), {
+      name,
+      rut,
+      address,
+      phone,
+      email,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// Cost centers
+app.post('/commands/buscar-centro-costo', async (req, res) => {
+  try {
+    const { companyId, query } = req.body
+    if (!companyId || !query) {
+      res.status(400).json({ error: 'companyId and query required' })
+      return
+    }
+    const result = await searchCostCenters(getContext(companyId), { query })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/commands/crear-centro-costo', async (req, res) => {
+  try {
+    const { companyId, name, description } = req.body
+    if (!companyId || !name) {
+      res.status(400).json({ error: 'companyId and name required' })
+      return
+    }
+    const result = await createCostCenter(getContext(companyId), {
+      name,
+      description,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// Payment accounts
+app.post('/commands/buscar-cuenta-pago', async (req, res) => {
+  try {
+    const { companyId, query } = req.body
+    if (!companyId || !query) {
+      res.status(400).json({ error: 'companyId and query required' })
+      return
+    }
+    const result = await searchPaymentAccounts(getContext(companyId), { query })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// Expenses
+app.post('/commands/crear-gasto', async (req, res) => {
+  try {
+    const {
+      companyId,
+      providerId,
+      costCenterId,
+      totalAmount,
+      description,
+      taxDeductions,
+      date,
+      invoiceUrl,
+    } = req.body
+    if (
+      !companyId ||
+      !providerId ||
+      !costCenterId ||
+      !totalAmount ||
+      !description
+    ) {
+      res.status(400).json({
+        error:
+          'companyId, providerId, costCenterId, totalAmount, and description required',
+      })
+      return
+    }
+    const result = await createExpense(getContext(companyId), {
+      providerId,
+      costCenterId,
+      totalAmount,
+      description,
+      taxDeductions,
+      date,
+      invoiceUrl,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/commands/registrar-pago', async (req, res) => {
+  try {
+    const {
+      companyId,
+      expenseId,
+      paymentAccountId,
+      amount,
+      date,
+      notes,
+      voucherUrl,
+    } = req.body
+    if (!companyId || !expenseId || !paymentAccountId) {
+      res
+        .status(400)
+        .json({ error: 'companyId, expenseId, and paymentAccountId required' })
+      return
+    }
+    const result = await recordPayment(getContext(companyId), {
+      expenseId,
+      paymentAccountId,
+      amount,
+      date,
+      notes,
+      voucherUrl,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+app.post('/commands/ver-gastos', async (req, res) => {
+  try {
+    const { companyId, limit, status } = req.body
+    if (!companyId) {
+      res.status(400).json({ error: 'companyId required' })
+      return
+    }
+    const result = await getRecentExpenses(getContext(companyId), {
+      limit,
+      status,
+    })
+    res.json({ success: true, result })
+  } catch (error) {
+    res.status(500).json({ error: String(error) })
   }
 })
 
 app.listen(PORT, () => {
   console.log(`🚀 Dev server running at http://localhost:${PORT}`)
-  console.log(`   POST /chat to send messages`)
+  console.log('   Available commands:')
+  console.log('   POST /commands/buscar-categoria-contable')
+  console.log('   POST /commands/crear-categoria-contable')
+  console.log('   POST /commands/buscar-proveedor')
+  console.log('   POST /commands/crear-proveedor')
+  console.log('   POST /commands/buscar-centro-costo')
+  console.log('   POST /commands/crear-centro-costo')
+  console.log('   POST /commands/buscar-cuenta-pago')
+  console.log('   POST /commands/crear-gasto')
+  console.log('   POST /commands/registrar-pago')
+  console.log('   POST /commands/ver-gastos')
 })

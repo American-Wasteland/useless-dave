@@ -17,6 +17,9 @@ export function useChat() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeToolCall, setActiveToolCall] = useState<ChatToolCall | null>(
+    null,
+  )
 
   const sendMessage = useCallback(
     async (content: string, attachments: ChatAttachment[]) => {
@@ -68,6 +71,7 @@ export function useChat() {
           content,
           uploadedAttachments,
           sessionId,
+          companyId,
           (event) => {
             const { data } = event
             switch (event.type) {
@@ -86,12 +90,12 @@ export function useChat() {
 
               case 'tool_call':
                 if (isToolCallEvent(data)) {
-                  // Add placeholder tool call
-                  streamingToolCalls.push({
+                  const newToolCall: ChatToolCall = {
                     name: data.name,
                     input: data.input,
                     result: '',
-                  })
+                  }
+                  streamingToolCalls.push(newToolCall)
                   setMessages((prev) =>
                     prev.map((msg) =>
                       msg.id === assistantMessageId
@@ -99,12 +103,15 @@ export function useChat() {
                         : msg,
                     ),
                   )
+                  // Show preview panel for create operations
+                  if (data.name.startsWith('create_')) {
+                    setActiveToolCall(newToolCall)
+                  }
                 }
                 break
 
               case 'tool_result':
                 if (isToolResultEvent(data)) {
-                  // Update the matching tool call with result
                   const { name, result } = data
                   const toolIndex = streamingToolCalls.findIndex(
                     (tc) => tc.name === name && tc.result === '',
@@ -121,6 +128,10 @@ export function useChat() {
                           : msg,
                       ),
                     )
+                    // Update active tool call with result
+                    if (name.startsWith('create_')) {
+                      setActiveToolCall({ ...streamingToolCalls[toolIndex] })
+                    }
                   }
                 }
                 break
@@ -181,6 +192,11 @@ export function useChat() {
     setMessages([])
     setSessionId(null)
     setError(null)
+    setActiveToolCall(null)
+  }, [])
+
+  const closeToolPreview = useCallback(() => {
+    setActiveToolCall(null)
   }, [])
 
   return {
@@ -188,7 +204,9 @@ export function useChat() {
     isLoading,
     error,
     sessionId,
+    activeToolCall,
     sendMessage,
     clearMessages,
+    closeToolPreview,
   }
 }

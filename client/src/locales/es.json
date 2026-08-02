@@ -1,0 +1,21 @@
+{
+  "common": {
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "loading": "Cargando...",
+    "name": "Nombre",
+    "description": "Descripción",
+    "optional": "opcional",
+    "confirmDelete": "¿Eliminar \"{{name}}\"?"
+  },
+  "accountingCategories": {
+    "title": "Categorías contables",
+    "new": "Nueva categoría contable",
+    "empty": "No hay categorías contables",
+    "emptyDescription": "Crea tu primera categoría para clasificar gastos",
+    "deleteError": "No se puede eliminar una categoría con gastos asociados"
+  }
+}

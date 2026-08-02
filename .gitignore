@@ -10,6 +10,9 @@ dist/
 .env.local
 .env.*.local
 
+# Service account credentials (NEVER commit)
+**/service-account*.json
+
 # IDE
 .idea/
 .vscode/

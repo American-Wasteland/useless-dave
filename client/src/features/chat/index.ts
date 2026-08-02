@@ -1,4 +1,5 @@
 export { ChatPage } from './ChatPage'
+export { ChatWithPanels } from './ChatWithPanels'
 export * from './chatService'
 export * from './components'
 export { useChat } from './useChat'

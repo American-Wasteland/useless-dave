@@ -24,6 +24,39 @@ async function searchByName(
     .filter((item) => item.name?.toLowerCase().includes(queryLower))
 }
 
+export async function searchAccountingCategories(
+  ctx: ToolContext,
+  input: { query: string },
+): Promise<string> {
+  const results = await searchByName(
+    ctx.db,
+    `companies/${ctx.companyId}/accountingCategories`,
+    input.query,
+  )
+  if (results.length === 0)
+    return `No encontré categorías contables con "${input.query}". ¿Quieres crear una nueva?`
+  const list = results
+    .slice(0, 5)
+    .map((c) => `- ${c.name} (ID: ${c.id})`)
+    .join('\n')
+  return `Encontré ${results.length} categoría(s) contable(s):\n${list}`
+}
+
+export async function createAccountingCategory(
+  ctx: ToolContext,
+  input: { name: string; description?: string },
+): Promise<string> {
+  const docRef = await ctx.db
+    .collection(`companies/${ctx.companyId}/accountingCategories`)
+    .add({
+      name: input.name,
+      description: input.description || null,
+      isActive: true,
+      createdAt: new Date(),
+    })
+  return `Categoría contable creada:\n- Nombre: ${input.name}\n- ID: ${docRef.id}`
+}
+
 export async function searchProviders(
   ctx: ToolContext,
   input: { query: string },
@@ -251,6 +284,13 @@ export async function executeTool(
   input: Record<string, unknown>,
 ): Promise<string> {
   switch (toolName) {
+    case 'search_accounting_categories':
+      return searchAccountingCategories(ctx, input as { query: string })
+    case 'create_accounting_category':
+      return createAccountingCategory(
+        ctx,
+        input as { name: string; description?: string },
+      )
     case 'search_providers':
       return searchProviders(ctx, input as { query: string })
     case 'search_cost_centers':

@@ -1,4 +1,4 @@
-import { Paperclip, Send, X } from 'lucide-react'
+import { ArrowUp, Paperclip, X } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
 import { cn } from '../../../lib/utils'
 import type { ChatAttachment } from '../../../types'
@@ -23,7 +23,6 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     setMessage('')
     setAttachments([])
 
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
@@ -38,7 +37,6 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
 
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value)
-    // Auto-grow textarea
     e.target.style.height = 'auto'
     e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`
   }
@@ -50,13 +48,12 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     const newAttachments: ChatAttachment[] = Array.from(files).map((file) => ({
       type: file.name.toLowerCase().includes('factura') ? 'invoice' : 'voucher',
       name: file.name,
-      url: '', // Will be filled after upload
+      url: '',
       file,
     }))
 
     setAttachments((prev) => [...prev, ...newAttachments])
 
-    // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -66,37 +63,43 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     setAttachments((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const canSend = message.trim() || attachments.length > 0
+
   return (
-    <div className="border-t border-gray-200 bg-white p-4">
+    <div className="w-full max-w-2xl mx-auto">
       {/* Attachments preview */}
       {attachments.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className="mb-3 flex flex-wrap gap-2 justify-center">
           {attachments.map((attachment, index) => (
             <div
               key={`${attachment.name}-${index}`}
-              className="flex items-center gap-2 rounded-full bg-gray-100 py-1 pl-3 pr-2 text-sm"
+              className="flex items-center gap-2 rounded-2xl bg-card border-2 border-border py-2 pl-4 pr-2 text-sm font-medium shadow-sm"
             >
-              <span className="max-w-[150px] truncate text-gray-700">
+              <span>📎</span>
+              <span className="max-w-[150px] truncate text-foreground">
                 {attachment.name}
               </span>
               <button
                 type="button"
                 onClick={() => removeAttachment(index)}
-                className="rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                className="rounded-full p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+      <form
+        onSubmit={handleSubmit}
+        className="relative flex items-end gap-2 rounded-3xl bg-card border-2 border-border shadow-lg p-2 transition-all focus-within:border-secondary focus-within:shadow-xl"
+      >
         {/* File upload button */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           title="Adjuntar archivo"
         >
           <Paperclip className="h-5 w-5" />
@@ -111,37 +114,36 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
         />
 
         {/* Message input */}
-        <div className="relative flex-1">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe un mensaje..."
-            rows={1}
-            disabled={isLoading}
-            className={cn(
-              'w-full resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-sm',
-              'placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500',
-              'disabled:bg-gray-50 disabled:text-gray-500',
-            )}
-          />
-        </div>
+        <textarea
+          ref={textareaRef}
+          value={message}
+          onChange={handleTextChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Escríbele a Dave..."
+          rows={1}
+          disabled={isLoading}
+          className={cn(
+            'flex-1 resize-none bg-transparent px-2 py-2.5 text-sm text-foreground',
+            'placeholder:text-muted-foreground focus:outline-none',
+            'disabled:text-muted-foreground',
+          )}
+        />
 
         {/* Send button */}
         <button
           type="submit"
-          disabled={isLoading || (!message.trim() && attachments.length === 0)}
+          disabled={isLoading || !canSend}
           className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors',
-            'bg-primary-600 text-white hover:bg-primary-700',
-            'disabled:bg-gray-200 disabled:text-gray-400',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all',
+            canSend && !isLoading
+              ? 'bg-secondary text-secondary-foreground hover:scale-105 shadow-md'
+              : 'bg-muted text-muted-foreground',
           )}
         >
           {isLoading ? (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
           ) : (
-            <Send className="h-4 w-4" />
+            <ArrowUp className="h-5 w-5" />
           )}
         </button>
       </form>

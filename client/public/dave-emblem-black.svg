@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 18 260 300">
-  <circle cx="130" cy="168" r="122" fill="#396f64" stroke="#0a0a0a" stroke-width="7"/>
+  <circle cx="130" cy="168" r="122" fill="none" stroke="#0a0a0a" stroke-width="7"/>
   <g stroke="#0a0a0a" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
     <!-- mohawk BEHIND head so base is hidden and it grows cleanly -->
-    <path d="M96,150 L104,64 L120,104 L130,50 L140,104 L156,66 L164,150 Z" fill="#d87943"/>
+    <path d="M96,150 L104,64 L120,104 L130,50 L140,104 L156,66 L164,150 Z" fill="none"/>
     <!-- ears -->
-    <rect x="52" y="158" width="20" height="30" rx="9" fill="#ffffff"/>
-    <rect x="188" y="158" width="20" height="30" rx="9" fill="#ffffff"/>
+    <rect x="52" y="158" width="20" height="30" rx="9" fill="none"/>
+    <rect x="188" y="158" width="20" height="30" rx="9" fill="none"/>
     <!-- face -->
-    <rect x="64" y="116" width="132" height="124" rx="46" fill="#ffffff"/>
+    <rect x="64" y="116" width="132" height="124" rx="46" fill="none"/>
   </g>
 
   <!-- dead half-lidded eyes: drooping lid right over a low pupil -->
@@ -25,5 +25,5 @@
 
   <!-- bored mouth + tongue blep -->
   <path d="M106,208 q24,7 48,-1" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round"/>
-  <path d="M136,210 q11,2 11,11 q0,7 -8,7 q-6,0 -6,-7 z" fill="#d87943" stroke="#0a0a0a" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M136,210 q11,2 11,11 q0,7 -8,7 q-6,0 -6,-7 z" fill="none" stroke="#0a0a0a" stroke-width="5" stroke-linejoin="round"/>
 </svg>
