@@ -9,7 +9,7 @@ A lightweight, fun ERP system designed for small businesses. Named after the pun
 | Frontend | React 18 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 |
 | Linting | Biome |
-| Backend | Firebase Functions (Node.js 20) |
+| Backend | Express + Firebase Functions (Node.js 20) |
 | Database | Firebase Firestore |
 | Auth | Firebase Auth (Google sign-in) |
 | Storage | Firebase Storage |
@@ -18,32 +18,74 @@ A lightweight, fun ERP system designed for small businesses. Named after the pun
 ## Features
 
 - **Multi-Company Support** - Users can create and belong to multiple companies with isolated data
-- **Command System** - Terminal-style command palette with deterministic operations
+- **Interactive Command System** - Step-by-step guided commands instead of free-text input
+- **Spanish UI, English Code** - User-facing in Spanish, codebase in English
 
-## Project Structure
+## Command System
 
+Useless Dave uses an interactive command system that guides users through operations step-by-step.
+
+### How It Works
+
+1. **User focuses input** → "/" automatically appears, dropdown opens above
+2. **Select command** → Type or click to select (e.g., `/crear-categoria-contable`)
+3. **Collect parameters** → Input prompts for each parameter one by one
+4. **Navigate to result** → Opens page with collected parameters in URL
+
+**Example Flow:**
 ```
-useless-dave/
-├── client/                      # React SPA
-│   ├── src/
-│   │   ├── components/          # UI components and layouts
-│   │   ├── features/            # Feature modules (auth, company, chat, etc.)
-│   │   ├── hooks/               # Custom React hooks
-│   │   ├── lib/                 # Firebase config, utilities
-│   │   └── types/               # TypeScript interfaces
-│   └── vite.config.ts
-│
-├── server/                      # Firebase Functions
-│   └── src/
-│       ├── functions/
-│       └── types/
-│
-├── biome.json                   # Linting configuration (root level)
-├── firebase.json                # Emulators + hosting config
-├── firestore.rules              # Security rules
-├── storage.rules                # File upload security
-└── .firebaserc                  # Firebase project config
+User types: /crear-categoria-contable
+Input prompts: "Nombre de la categoría" (1/2)
+User types: "Insumos médicos" → Enter
+Input prompts: "Descripción (opcional)" (2/2)
+User types: "Materiales" → Enter
+→ Navigates to: /categories/create?name=Insumos médicos&description=Materiales
 ```
+
+### Available Commands
+
+- `/crear-categoria-contable` - Create accounting category
+- `/buscar-categoria-contable` - Find accounting categories
+
+### Adding a New Command
+
+**1. Add to registry** (`client/src/features/commands/commandRegistry.ts`):
+
+```typescript
+{
+  id: 'create-provider',
+  name: '/crear-proveedor',              // Spanish name
+  description: 'Crear un nuevo proveedor',
+  icon: '🏢',
+  targetPath: '/providers/create',
+  parameters: [
+    {
+      name: 'name',                       // English param name
+      label: 'Nombre del proveedor',     // Spanish prompt
+      type: 'text',
+      required: true,
+    },
+  ],
+}
+```
+
+**2. Add route** in `App.tsx`:
+```tsx
+<Route path="providers/create" element={<CreateProviderPage />} />
+```
+
+**3. Create page component** that reads params from URL query string:
+```tsx
+import { useSearchParams } from 'react-router-dom'
+
+export function CreateProviderPage() {
+  const [searchParams] = useSearchParams()
+  const name = searchParams.get('name') || ''
+  // Execute API call and display results
+}
+```
+
+That's it! The command automatically appears in the dropdown.
 
 ## Getting Started
 
@@ -141,6 +183,37 @@ This enables:
 - Querying which companies a user belongs to
 - Role-based access per company (admin, editor, viewer)
 - Company switching without re-authentication
+
+## Project Structure
+
+```
+useless-dave/
+├── client/                           # React SPA
+│   ├── src/
+│   │   ├── components/               # UI components and layouts
+│   │   ├── features/
+│   │   │   ├── auth/                 # Authentication
+│   │   │   ├── commands/             # Command system
+│   │   │   │   ├── commandRegistry.ts  # Centralized command config
+│   │   │   │   ├── CommandInterface.tsx
+│   │   │   │   └── components/CommandInput.tsx
+│   │   │   └── company/              # Company management
+│   │   ├── hooks/                    # Custom React hooks
+│   │   ├── lib/                      # Firebase config, utilities
+│   │   └── types/                    # TypeScript interfaces
+│   └── vite.config.ts
+│
+├── server/                           # Express + Firebase Functions
+│   └── src/
+│       ├── commands/registry.ts      # Server command registry
+│       ├── dev-server.ts             # REST endpoints
+│       └── tools/handlers.ts         # Business logic
+│
+├── biome.json                        # Linting configuration
+├── firebase.json                     # Emulators + hosting config
+├── firestore.rules                   # Security rules
+└── storage.rules                     # File upload security
+```
 
 ## Security
 

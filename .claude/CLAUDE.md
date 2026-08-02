@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Useless Dave is a small business ERP with a command-based interface. The name references a punk/skater aesthetic (Tony Hawk American Wasteland vibes) - the UI should feel fun and playful, not corporate.
+Useless Dave is a small business ERP with an interactive command system. The name references a punk/skater aesthetic (Tony Hawk American Wasteland vibes) - the UI should feel fun and playful, not corporate.
 
 ## Tech Stack
 
@@ -16,7 +16,7 @@ Useless Dave is a small business ERP with a command-based interface. The name re
 | Database | Firebase Firestore |
 | Auth | Firebase Auth (Google sign-in) |
 | Storage | Firebase Storage |
-| Commands | Deterministic command system (Spanish) |
+| Commands | Interactive command system (Spanish UI, English code) |
 
 ## Multi-Company Support
 
@@ -51,59 +51,94 @@ When creating a company, you must create:
 
 ## Command System
 
-The app uses a **deterministic command system** instead of AI/LLM. No free-text chat - everything is command-based.
+The app uses an **interactive command system** with step-by-step parameter collection.
+
+### User Flow
+
+```
+1. User focuses input → "/" automatically added
+2. Dropdown opens ABOVE input showing commands
+3. User types or selects command (e.g., /crear-categoria-contable)
+4. Input prompts: "Nombre de la categoría?"
+5. User types answer, presses Enter
+6. Input prompts: "Descripción (opcional)?"
+7. User types answer (or skips), presses Enter
+8. Navigate to /:companyId/categories/create?name=X&description=Y
+```
 
 ### Architecture
 
-```
-User types "/" → Command palette shows options → User selects command → Router navigates to /:companyId/comando/:commandId → Panel opens on right side → Form submission → API call → Result displayed
+**Centralized Config** - `client/src/features/commands/commandRegistry.ts`:
+
+```typescript
+export const COMMANDS: CommandDefinition[] = [
+  {
+    id: 'create-accounting-category',
+    name: '/crear-categoria-contable',  // Spanish for users
+    description: 'Crear una nueva categoría contable',
+    icon: '📊',
+    targetPath: '/categories/create',  // Where to navigate
+    parameters: [
+      {
+        name: 'name',  // English in code
+        label: 'Nombre de la categoría',  // Spanish for users
+        type: 'text',
+        required: true,
+        placeholder: 'ej: Insumos médicos',
+      },
+      // ... more params
+    ],
+  },
+]
 ```
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `client/src/features/commands/registry.ts` | Command definitions (Spanish names) |
-| `client/src/features/commands/CommandView.tsx` | Main view with command palette |
-| `client/src/features/commands/components/CommandPalette.tsx` | Autocomplete input |
-| `client/src/features/commands/components/CommandPanel.tsx` | Generic form panel |
-| `server/src/commands/registry.ts` | Server-side command registry |
-| `server/src/dev-server.ts` | Express endpoints for each command |
-| `server/src/tools/handlers.ts` | Business logic for each command |
-
-### Adding a New Command
-
-1. **Add to server registry** (`server/src/commands/registry.ts`)
-2. **Add endpoint** in `server/src/dev-server.ts`:
-   ```ts
-   app.post('/commands/mi-comando', async (req, res) => {
-     const { companyId, param1, param2 } = req.body
-     const result = await myHandler(getContext(companyId), { param1, param2 })
-     res.json({ success: true, result })
-   })
-   ```
-3. **Add to client registry** (`client/src/features/commands/registry.ts`)
-4. Test with command palette!
+| `client/src/features/commands/commandRegistry.ts` | Centralized command definitions |
+| `client/src/features/commands/CommandInterface.tsx` | Main UI with welcome screen |
+| `client/src/features/commands/components/CommandInput.tsx` | Interactive input with dropdown + param collection |
+| `server/src/dev-server.ts` | REST endpoints for commands |
 
 ### Available Commands
 
-- `/buscar-categoria-contable` - Search accounting categories
+Currently only 2 commands (easy to add more):
 - `/crear-categoria-contable` - Create accounting category
-- `/buscar-proveedor` - Search providers
-- `/crear-proveedor` - Create provider
-- `/buscar-centro-costo` - Search cost centers
-- `/crear-centro-costo` - Create cost center
-- `/buscar-cuenta-pago` - Search payment accounts
-- `/crear-gasto` - Create expense
-- `/registrar-pago` - Record payment
-- `/ver-gastos` - View recent expenses
+- `/buscar-categoria-contable` - Find accounting categories
+
+### Adding a New Command
+
+1. **Add to command registry** (`client/src/features/commands/commandRegistry.ts`):
+   ```typescript
+   {
+     id: 'my-command',
+     name: '/mi-comando',
+     description: 'Descripción del comando',
+     icon: '🎯',
+     targetPath: '/my-page',
+     parameters: [
+       { name: 'param1', label: 'Parámetro 1', type: 'text', required: true },
+     ],
+   }
+   ```
+
+2. **Add route** in `App.tsx`:
+   ```tsx
+   <Route path="my-page" element={<MyPage />} />
+   ```
+
+3. **Create page component** that reads params from URL query string
+
+That's it! The CommandInput handles the rest.
 
 ## UI/UX Guidelines
 
 - **Playful, not corporate** - Use the secondary teal color (#527575), fun copy, slight rotations on cards
 - **No dark mode** - Light theme only
-- **Spanish UI** - All user-facing text in Spanish (Colombian), but NO spanglish or slang
+- **Spanish UI, English code** - All user-facing text in Spanish (Colombian), all code/variables in English
 - **Command-driven** - Terminal aesthetic with `/` prefix for all commands
+- **Step-by-step guidance** - Input prompts users for each parameter one at a time
 - **Dave branding** - Punk character with mohawk emblem (see `/public/dave-emblem.svg`)
 
 ## Development
@@ -128,15 +163,20 @@ Biome is configured at root level. Key disabled rules:
 
 ## Common Patterns
 
-### Company-Scoped Queries
+### Reading Command Parameters
+
+Command parameters are passed via URL query string:
 
 ```typescript
-const companyId = useCompanyId() // from URL params
-const query = useQuery({
-  queryKey: ['someData', companyId],
-  queryFn: () => fetchData(companyId!),
-  enabled: !!companyId, // guards the non-null assertion
-})
+import { useSearchParams } from 'react-router-dom'
+
+function MyCommandPage() {
+  const [searchParams] = useSearchParams()
+  const name = searchParams.get('name') || ''
+  const description = searchParams.get('description') || ''
+
+  // ... use params
+}
 ```
 
 ### Router-Based Panels
@@ -144,7 +184,7 @@ const query = useQuery({
 All panels are router-based, not state-based:
 ```typescript
 // Navigate to panel
-navigate(`/${companyId}/comando/crear-categoria-contable`)
+navigate(`/${companyId}/categories/create?name=Insumos`)
 
 // Close panel
 navigate(`/${companyId}`)

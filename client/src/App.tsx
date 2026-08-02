@@ -1,8 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ChatLayout } from './components/layout'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
-import { CommandView } from './features/commands/CommandView'
-import { CommandPanel } from './features/commands/components'
+import { CommandInterface } from './features/commands/CommandInterface'
 import { CompanySelector, CreateCompanyPage } from './features/company'
 import { CategoriesPanel } from './pages/panels/CategoriesPanel'
 
@@ -34,7 +33,7 @@ function App() {
             }
           />
 
-          {/* Company-scoped routes - Command-first layout */}
+          {/* Company-scoped routes - Command interface */}
           <Route
             path="/:companyId"
             element={
@@ -43,12 +42,14 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {/* Command view is always rendered, panels overlay via Outlet */}
-            <Route element={<CommandView />}>
+            {/* Command interface is always rendered, panels overlay via Outlet */}
+            <Route element={<CommandInterface />}>
               <Route index element={null} />
               <Route path="categories" element={<CategoriesPanel />} />
-              {/* Command panels */}
-              <Route path="comando/:commandId" element={<CommandPanel />} />
+              <Route
+                path="categories/create"
+                element={<div>Create category page</div>}
+              />
             </Route>
           </Route>
 

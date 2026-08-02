@@ -1,2 +1,1 @@
-export * from './CommandPalette'
-export * from './CommandPanel'
+export * from './CommandInput'
