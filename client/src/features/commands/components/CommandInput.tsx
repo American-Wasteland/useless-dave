@@ -55,6 +55,14 @@ export function CommandInput() {
 
   // Select a command and start collecting params
   const selectCommand = (command: CommandDefinition) => {
+    // If no parameters, navigate immediately
+    if (command.parameters.length === 0) {
+      const targetPath = `/${companyId}${command.targetPath}`
+      navigate(targetPath)
+      resetToCommandSelection()
+      return
+    }
+
     setState({
       stage: 'collect-params',
       selectedCommand: command,

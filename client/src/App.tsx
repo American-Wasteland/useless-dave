@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import {
   CreateCategoryPanel,
   FindCategoryPanel,
+  ListCategoriesPage,
 } from './commands/accounting-categories'
 import { ChatLayout } from './components/layout'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
@@ -45,6 +46,12 @@ function App() {
               </ProtectedRoute>
             }
           >
+            {/* Full pages (no command interface) */}
+            <Route
+              path="accountancy/categories"
+              element={<ListCategoriesPage />}
+            />
+
             {/* Command interface is always rendered, panels overlay via Outlet */}
             <Route element={<CommandInterface />}>
               <Route index element={null} />
