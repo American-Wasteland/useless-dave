@@ -13,10 +13,11 @@ Useless Dave is a small business ERP with an interactive command system. The nam
 | State | React Query (TanStack Query) |
 | Linting | Biome (root-level config) |
 | Backend | Express + Firebase Functions (Node.js 20) |
-| Database | Firebase Firestore |
+| Database | Firestore (server-side only, never from client) |
 | Auth | Firebase Auth (Google sign-in) |
 | Storage | Firebase Storage |
 | Commands | Interactive command system (Spanish UI, English code) |
+| Shared Types | `@useless-dave/shared` package (client + server) |
 
 ## Multi-Company Support
 

@@ -1,9 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import {
+  CreateCategoryPanel,
+  FindCategoryPanel,
+} from './commands/accounting-categories'
 import { ChatLayout } from './components/layout'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
 import { CommandInterface } from './features/commands/CommandInterface'
 import { CompanySelector, CreateCompanyPage } from './features/company'
-import { CategoriesPanel } from './pages/panels/CategoriesPanel'
 
 function App() {
   return (
@@ -45,10 +48,10 @@ function App() {
             {/* Command interface is always rendered, panels overlay via Outlet */}
             <Route element={<CommandInterface />}>
               <Route index element={null} />
-              <Route path="categories" element={<CategoriesPanel />} />
+              <Route path="categories" element={<FindCategoryPanel />} />
               <Route
                 path="categories/create"
-                element={<div>Create category page</div>}
+                element={<CreateCategoryPanel />}
               />
             </Route>
           </Route>

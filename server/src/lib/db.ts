@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import * as admin from 'firebase-admin'
+import admin from 'firebase-admin'
 import type { Firestore } from 'firebase-admin/firestore'
 import type { Storage } from 'firebase-admin/storage'
 

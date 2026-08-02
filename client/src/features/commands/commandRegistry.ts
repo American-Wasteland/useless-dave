@@ -15,47 +15,13 @@ export interface CommandDefinition {
   parameters: CommandParameter[]
 }
 
-// Centralized command registry - easy to extend
+// Import commands from their packages
+import { accountingCategoryCommands } from '../../commands/accounting-categories'
+
+// Centralized command registry - commands are defined in their own packages
 export const COMMANDS: CommandDefinition[] = [
-  {
-    id: 'create-accounting-category',
-    name: '/crear-categoria-contable',
-    description: 'Crear una nueva categoría contable',
-    icon: '📊',
-    targetPath: '/categories/create',
-    parameters: [
-      {
-        name: 'name',
-        label: 'Nombre de la categoría',
-        type: 'text',
-        required: true,
-        placeholder: 'ej: Insumos médicos',
-      },
-      {
-        name: 'description',
-        label: 'Descripción (opcional)',
-        type: 'text',
-        required: false,
-        placeholder: 'ej: Materiales e insumos para procedimientos',
-      },
-    ],
-  },
-  {
-    id: 'find-accounting-category',
-    name: '/buscar-categoria-contable',
-    description: 'Buscar categorías contables existentes',
-    icon: '🔍',
-    targetPath: '/categories',
-    parameters: [
-      {
-        name: 'query',
-        label: 'Buscar por nombre',
-        type: 'text',
-        required: true,
-        placeholder: 'ej: Insumos',
-      },
-    ],
-  },
+  ...accountingCategoryCommands,
+  // Add more command collections here as you expand
 ]
 
 export function findCommand(input: string): CommandDefinition | undefined {
