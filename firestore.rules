@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user belongs to company
+    function isCompanyMember(companyId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/companies/$(companyId)/users/$(request.auth.uid));
+    }
+
+    // Helper function to get user's role in company
+    function getUserRole(companyId) {
+      return get(/databases/$(database)/documents/companies/$(companyId)/users/$(request.auth.uid)).data.role;
+    }
+
+    // Helper function to check if user is admin
+    function isAdmin(companyId) {
+      return isCompanyMember(companyId) && getUserRole(companyId) == 'admin';
+    }
+
+    // Helper function to check if user can edit
+    function canEdit(companyId) {
+      return isCompanyMember(companyId) && getUserRole(companyId) in ['admin', 'editor'];
+    }
+
+    // Company level access
+    match /companies/{companyId} {
+      // Allow read if member, allow create if authenticated (for bootstrapping)
+      allow read: if isCompanyMember(companyId);
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin(companyId);
+
+      // Users subcollection
+      match /users/{userId} {
+        allow read: if isCompanyMember(companyId) || (isAuthenticated() && request.auth.uid == userId);
+        // Allow user to create their own record (bootstrapping) or admin to manage
+        allow create: if isAuthenticated() && request.auth.uid == userId;
+        allow update, delete: if isAdmin(companyId) || request.auth.uid == userId;
+      }
+
+      // Invitations subcollection
+      match /invitations/{invitationId} {
+        allow read, write: if isAdmin(companyId);
+      }
+
+      // Providers subcollection
+      match /providers/{providerId} {
+        allow read: if isCompanyMember(companyId);
+        allow write: if canEdit(companyId);
+      }
+
+      // Cost centers subcollection
+      match /costCenters/{costCenterId} {
+        allow read: if isCompanyMember(companyId);
+        allow write: if canEdit(companyId);
+      }
+
+      // Payment accounts subcollection
+      match /paymentAccounts/{accountId} {
+        allow read: if isCompanyMember(companyId);
+        allow write: if canEdit(companyId);
+      }
+
+      // Expenses subcollection
+      match /expenses/{expenseId} {
+        allow read: if isCompanyMember(companyId);
+        allow create: if canEdit(companyId);
+        allow update, delete: if canEdit(companyId);
+
+        // Payments subcollection within expenses
+        match /payments/{paymentId} {
+          allow read: if isCompanyMember(companyId);
+          allow write: if canEdit(companyId);
+        }
+      }
+    }
+  }
+}

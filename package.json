@@ -1,0 +1,30 @@
+{
+  "name": "useless-dave",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small business ERP for expense tracking",
+  "scripts": {
+    "dev": "concurrently -n emu,client -c blue,green \"npm run emulators\" \"npm run client\"",
+    "client": "npm run dev -w client",
+    "emulators": "firebase emulators:start",
+    "build": "npm run build -w client && npm run build -w server",
+    "build:client": "npm run build -w client",
+    "build:server": "npm run build -w server",
+    "lint": "npm run lint -w client && npm run lint -w server",
+    "deploy": "npm run build && firebase deploy",
+    "prepare": "husky"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "lint-staged": {
+    "client/src/**/*.{ts,tsx}": "npm run lint -w client",
+    "server/src/**/*.ts": "npm run lint -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0"
+  }
+}
