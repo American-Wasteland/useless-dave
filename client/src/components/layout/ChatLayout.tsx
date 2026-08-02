@@ -48,7 +48,7 @@ export function ChatLayout() {
       </div>
 
       {/* Top bar */}
-      <header className="relative z-50 flex items-center justify-between px-6 py-4">
+      <header className="relative z-40 flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <img
             src={daveEmblem}
@@ -112,7 +112,7 @@ export function ChatLayout() {
             {showUserMenu && (
               // biome-ignore lint/a11y/noStaticElementInteractions: Need to stop propagation to prevent close
               <div
-                className="absolute right-0 top-full mt-2 w-48 py-2 bg-card rounded-xl shadow-xl border border-border z-50"
+                className="absolute right-0 top-full mt-2 w-48 py-2 bg-card rounded-xl shadow-xl border border-border z-10"
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <div className="px-4 py-2 border-b border-border">

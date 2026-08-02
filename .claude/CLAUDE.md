@@ -190,3 +190,23 @@ navigate(`/${companyId}/categories/create?name=Insumos`)
 // Close panel
 navigate(`/${companyId}`)
 ```
+
+### Layering - Portals + Minimal Z-Index
+
+Modals and slide panels use React Portals to escape the layout hierarchy:
+
+```tsx
+import { createPortal } from 'react-dom'
+
+export function Modal({ children }) {
+  return createPortal(
+    <div className="fixed inset-0 z-50">{children}</div>,
+    document.body
+  )
+}
+```
+
+**Z-index scale:**
+- Header: `z-40`
+- Modals/Panels: `z-50` (portaled to body)
+- Dropdowns: `z-10` (within layout)

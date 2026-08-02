@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 
@@ -22,12 +23,12 @@ export function SlidePanel({ title, children, size = 'md' }: SlidePanelProps) {
     navigate('..')
   }
 
-  return (
-    <>
+  return createPortal(
+    <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <button
         type="button"
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-in fade-in duration-200 cursor-default"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 cursor-default"
         onClick={handleClose}
         aria-label="Close panel"
       />
@@ -35,7 +36,7 @@ export function SlidePanel({ title, children, size = 'md' }: SlidePanelProps) {
       {/* Panel */}
       <div
         className={cn(
-          'fixed right-0 top-0 bottom-0 z-50 w-full bg-card shadow-2xl border-l border-border',
+          'fixed right-0 top-0 bottom-0 w-full bg-card shadow-2xl border-l border-border',
           'animate-in slide-in-from-right duration-300',
           sizeClasses[size],
         )}
@@ -57,6 +58,7 @@ export function SlidePanel({ title, children, size = 'md' }: SlidePanelProps) {
           {children}
         </div>
       </div>
-    </>
+    </div>,
+    document.body,
   )
 }
