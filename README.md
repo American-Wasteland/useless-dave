@@ -164,6 +164,53 @@ npm run dev
 | `npm run build` | Build for production |
 | `npm run deploy` | Build and deploy to Firebase |
 
+## UI Conventions
+
+### Modal Management
+
+All modals use a **centralized query parameter system** for consistency:
+
+**Format**: `?modal={entity}&type={action}&id={id}`
+
+**Examples**:
+- Create: `?modal=provider&type=create`
+- View: `?modal=provider&type=view&id=abc123`
+- Update: `?modal=provider&type=update&id=abc123`
+
+**Benefits**:
+- Deep-linkable (share/bookmark modal states)
+- Browser back/forward works naturally
+- Right-click to open in new tab
+- No state synchronization issues
+
+**Architecture**:
+1. Global `ModalManager` routes by `modal` param
+2. Feature managers (e.g., `ProviderModalManager`) route by `type` param
+3. Individual modals use `SlidePanel` which auto-closes by clearing params
+
+### UI Standards
+
+**Typography**:
+- Modal titles: Sentence case (`"Detalle del proveedor"`, not `"Detalle Del Proveedor"`)
+- Field labels: `text-xs text-gray-500 font-medium normal-case`
+- Spanish UI, English code (always)
+
+**Navigation**:
+- Use `<Link>` over `onClick` for better UX (right-click, copy link)
+- Back buttons use `navigate(-1)` to leverage browser history
+- Table rows are clickable for view, action buttons use `stopPropagation`
+
+**Example**:
+```tsx
+// Good: Edit as Link
+<Link to="?modal=provider&type=update&id=123">
+  <Button>Editar</Button>
+</Link>
+
+// Good: Back button
+<Button onClick={() => navigate(-1)}>Volver</Button>
+```
+
 ## Multi-Company Architecture
 
 Users can belong to multiple companies via `/users/{userId}/memberships/{companyId}`:

@@ -1,13 +1,12 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { Input, SlidePanel } from '../../../components/ui'
-import { useCompanyId } from '../../../hooks/useCompanyId'
 import { useFindCategories } from './useFindCategories'
 
 export function FindCategoryPanel() {
   const navigate = useNavigate()
-  const companyId = useCompanyId()
+  const _location = useLocation()
   const [searchParams] = useSearchParams()
   const { categories, isLoading } = useFindCategories()
 
@@ -26,7 +25,14 @@ export function FindCategoryPanel() {
   }, [categories, query])
 
   const handleClose = () => {
-    navigate(`/${companyId}`)
+    const newSearch = new URLSearchParams(searchParams)
+    newSearch.delete('selectedId')
+    newSearch.delete('query')
+    const queryString = newSearch.toString()
+
+    navigate(`${location.pathname}${queryString ? `?${queryString}` : ''}`, {
+      replace: true,
+    })
   }
 
   return (

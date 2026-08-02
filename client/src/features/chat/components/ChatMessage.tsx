@@ -40,7 +40,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 href={attachment.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-2xl bg-secondary/10 border-2 border-secondary/20 px-4 py-2 text-sm font-medium text-foreground hover:border-secondary/40 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-2xl bg-secondary/10 border-2 border-secondary/20 px-4 py-2 text-xs text-gray-500 font-medium normal-case hover:border-secondary/40 transition-colors"
               >
                 📎
                 <span className="max-w-[150px] truncate">

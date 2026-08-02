@@ -116,7 +116,7 @@ export function ChatLayout() {
                 onMouseDown={(e) => e.stopPropagation()}
               >
                 <div className="px-4 py-2 border-b border-border">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-xs text-gray-500 font-medium normal-case truncate">
                     {user?.displayName}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">

@@ -14,11 +14,14 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       projectId: serviceAccount.project_id,
+      storageBucket: `${serviceAccount.project_id}.firebasestorage.app`,
     })
   } else {
     // Fallback to default (for production/Cloud Functions)
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'useless-dave'
     admin.initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID || 'useless-dave',
+      projectId,
+      storageBucket: `${projectId}.firebasestorage.app`,
     })
   }
 }

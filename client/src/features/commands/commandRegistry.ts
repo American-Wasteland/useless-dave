@@ -1,9 +1,15 @@
+export interface CommandParameterOption {
+  value: string
+  label: string // Spanish label shown to user
+}
+
 export interface CommandParameter {
   name: string
   label: string // Spanish label shown to user
-  type: 'text' | 'number'
+  type: 'text' | 'number' | 'select'
   required: boolean
   placeholder?: string
+  options?: CommandParameterOption[] // For select type
 }
 
 export interface CommandDefinition {
@@ -17,10 +23,12 @@ export interface CommandDefinition {
 
 // Import commands from their packages
 import { accountingCategoryCommands } from '../../commands/accounting-categories'
+import { providerCommands } from '../../commands/providers'
 
 // Centralized command registry - commands are defined in their own packages
 export const COMMANDS: CommandDefinition[] = [
   ...accountingCategoryCommands,
+  ...providerCommands,
   // Add more command collections here as you expand
 ]
 

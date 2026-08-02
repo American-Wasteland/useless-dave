@@ -15,12 +15,14 @@
     "lint:fix": "biome check --write ."
   },
   "dependencies": {
+    "@types/multer": "^2.2.0",
     "@useless-dave/shared": "file:../shared",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^13.2.0",
-    "firebase-functions": "^7.3.2"
+    "firebase-functions": "^7.3.2",
+    "multer": "^2.2.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.6",

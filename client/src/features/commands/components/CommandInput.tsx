@@ -28,12 +28,14 @@ export function CommandInput() {
 
   const suggestions = searchCommands(input)
 
-  // Ensure "/" prefix on focus
+  // Ensure "/" prefix on focus (only during command selection)
   const handleFocus = () => {
-    if (!input.startsWith('/')) {
+    if (state.stage === 'select-command' && !input.startsWith('/')) {
       setInput('/')
     }
-    setShowSuggestions(true)
+    if (state.stage === 'select-command') {
+      setShowSuggestions(true)
+    }
   }
 
   const handleBlur = () => {
@@ -80,11 +82,11 @@ export function CommandInput() {
       ? state.selectedCommand.parameters[state.currentParamIndex]
       : undefined
 
-  // Submit current parameter value
-  const submitParamValue = () => {
+  // Submit current parameter value (with optional custom value for select options)
+  const submitParamValue = (customValue?: string) => {
     if (!currentParam || !state.selectedCommand) return
 
-    const value = input.trim()
+    const value = customValue !== undefined ? customValue : input.trim()
 
     // Validate required fields
     if (currentParam.required && !value) {
@@ -178,19 +180,28 @@ export function CommandInput() {
     state.stage === 'collect-params' && state.selectedCommand
       ? state.selectedCommand.parameters
           .slice(0, state.currentParamIndex)
-          .map((param) => ({
-            label: param.label,
-            value: state.collectedParams[param.name] || '',
-          }))
+          .map((param) => {
+            const rawValue = state.collectedParams[param.name] || ''
+            // For select type, look up the display label from options
+            const displayValue =
+              param.type === 'select' && param.options
+                ? param.options.find((opt) => opt.value === rawValue)?.label ||
+                  rawValue
+                : rawValue
+            return {
+              label: param.label,
+              value: displayValue,
+            }
+          })
       : []
 
   return (
-    <div className="w-full max-w-2xl mx-auto relative">
-      {/* Suggestions dropdown - shown above input */}
+    <div className="w-full relative">
+      {/* Suggestions dropdown - shown below input */}
       {showSuggestions &&
         state.stage === 'select-command' &&
         suggestions.length > 0 && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 bg-card rounded-3xl border-2 border-border shadow-xl overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-3xl border-2 border-border shadow-xl overflow-hidden">
             {suggestions.map((cmd, index) => (
               <button
                 key={cmd.id}
@@ -255,42 +266,64 @@ export function CommandInput() {
           </div>
         )}
 
-        {/* Current input row */}
-        <div className="flex items-center gap-2">
-          {/* Current parameter label */}
-          {state.stage === 'collect-params' && currentParam && (
-            <div className="flex h-10 items-center px-2 text-sm text-muted-foreground shrink-0">
+        {/* Current input row or select options */}
+        {state.stage === 'collect-params' && currentParam?.type === 'select' ? (
+          // Select type - show options as buttons
+          <div className="flex items-center gap-2 px-2">
+            <div className="text-sm text-muted-foreground shrink-0">
               {currentParam.label}:
             </div>
-          )}
-
-          {/* Input */}
-          <input
-            ref={inputRef}
-            type={currentParam?.type === 'number' ? 'number' : 'text'}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            className="flex-1 bg-transparent px-2 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-          />
-
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all',
-              canSubmit
-                ? 'bg-secondary text-secondary-foreground hover:scale-105 shadow-md'
-                : 'bg-muted text-muted-foreground',
+            <div className="flex flex-wrap gap-1.5">
+              {currentParam.options?.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => submitParamValue(option.value)}
+                  className="px-2.5 py-1 text-sm bg-muted hover:bg-secondary text-foreground hover:text-secondary-foreground rounded-md transition-colors"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          // Text/number input
+          <div className="flex items-center gap-2">
+            {/* Current parameter label */}
+            {state.stage === 'collect-params' && currentParam && (
+              <div className="flex h-10 items-center px-2 text-sm text-muted-foreground shrink-0">
+                {currentParam.label}:
+              </div>
             )}
-          >
-            <ArrowUp className="h-5 w-5" />
-          </button>
-        </div>
+
+            {/* Input */}
+            <input
+              ref={inputRef}
+              type={currentParam?.type === 'number' ? 'number' : 'text'}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              className="flex-1 bg-transparent px-2 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={cn(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all',
+                canSubmit
+                  ? 'bg-secondary text-secondary-foreground hover:scale-105 shadow-md'
+                  : 'bg-muted text-muted-foreground',
+              )}
+            >
+              <ArrowUp className="h-5 w-5" />
+            </button>
+          </div>
+        )}
       </form>
     </div>
   )

@@ -191,6 +191,130 @@ navigate(`/${companyId}/categories/create?name=Insumos`)
 navigate(`/${companyId}`)
 ```
 
+### Modal Management System
+
+**IMPORTANT**: All modals use a centralized query parameter system for consistency and better UX.
+
+#### Query Parameter Format
+
+```
+?modal={entity}&type={action}&id={id}
+```
+
+Examples:
+- Create: `?modal=provider&type=create`
+- View: `?modal=provider&type=view&id=123`
+- Update: `?modal=provider&type=update&id=123`
+
+#### Architecture
+
+1. **Global ModalManager** (`client/src/components/modals/ModalManager.tsx`)
+   - Placed inside `/:companyId` route in `App.tsx` (needs access to route params)
+   - Routes to feature-specific modal managers based on `modal` param
+
+2. **Feature Modal Manager** (e.g., `ProviderModalManager.tsx`)
+   - Routes to specific modals based on `type` param
+   - One per entity (providers, categories, etc.)
+
+3. **Individual Modals** (e.g., `ProviderCreateModal.tsx`, `ProviderViewModal.tsx`)
+   - Read `id` param if needed
+   - Use `SlidePanel` which auto-closes by removing query params
+
+#### Adding a New Modal-Managed Entity
+
+1. **Create feature modal manager**:
+   ```typescript
+   // client/src/features/myentity/MyEntityModalManager.tsx
+   export function MyEntityModalManager() {
+     const [searchParams] = useSearchParams()
+     const type = searchParams.get('type')
+     const entityId = searchParams.get('id')
+
+     switch (type) {
+       case 'create':
+         return <MyEntityCreateModal />
+       case 'view':
+         if (!entityId) return null
+         return <MyEntityViewModal />
+       case 'update':
+         if (!entityId) return null
+         return <MyEntityUpdateModal />
+       default:
+         return null
+     }
+   }
+   ```
+
+2. **Register in global ModalManager**:
+   ```typescript
+   // client/src/components/modals/ModalManager.tsx
+   switch (modal) {
+     case 'provider':
+       return <ProviderModalManager />
+     case 'myentity':
+       return <MyEntityModalManager />
+   ```
+
+3. **Create individual modals** using `SlidePanel`
+   - SlidePanel automatically clears `modal`, `type`, and `id` params on close
+   - No need for manual `onClose` handlers
+
+#### Navigation Best Practices
+
+- **Use Links, not buttons**: Prefer `<Link to={url}>` over `onClick` handlers for better UX (right-click, copy link, browser history)
+- **Back navigation**: Use `navigate(-1)` for back buttons to leverage browser history
+- **Example**:
+  ```typescript
+  // Good: Edit button as Link
+  const editUrl = (() => {
+    const params = new URLSearchParams(searchParams)
+    params.set('type', 'update')
+    return `?${params.toString()}`
+  })()
+
+  <Link to={editUrl}>
+    <Button>Editar</Button>
+  </Link>
+
+  // Back button
+  <Button onClick={() => navigate(-1)}>Volver</Button>
+  ```
+
+### UI Standards
+
+#### Modal Titles
+- **Sentence case**: Only first word capitalized (Spanish style)
+- Examples: "Detalle del proveedor", "Crear proveedor", "Actualizar proveedor"
+- Never use title case ("Detalle Del Proveedor") or uppercase ("DETALLE DEL PROVEEDOR")
+
+#### Field Labels
+All field labels in modals/forms use consistent styling:
+
+```tsx
+<div className="text-xs text-gray-500 font-medium normal-case">
+  NIT
+</div>
+```
+
+The `normal-case` utility is critical to override any inherited text transformations.
+
+#### Table Patterns
+
+- **Clickable rows**: Make entire rows clickable for view action
+- **Action buttons**: Use `stopPropagation` to prevent row click:
+  ```tsx
+  <tr onClick={() => handleView(item.id)}>
+    <td>
+      <button onClick={(e) => {
+        e.stopPropagation()
+        handleEdit(item.id)
+      }}>
+        Edit
+      </button>
+    </td>
+  </tr>
+  ```
+
 ### Layering - Portals + Minimal Z-Index
 
 Modals and slide panels use React Portals to escape the layout hierarchy:

@@ -205,9 +205,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     @apply antialiased font-sans;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
@@ -244,7 +246,7 @@
   }
 
   .label {
-    @apply block text-sm font-medium text-foreground mb-1;
+    @apply block text-xs text-gray-500 font-medium normal-case mb-1;
   }
 
   .card {

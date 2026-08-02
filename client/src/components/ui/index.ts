@@ -1,5 +1,6 @@
 export { Badge } from './Badge'
 export { Button } from './Button'
+export { ConfirmModal } from './ConfirmModal'
 export { FileUpload } from './FileUpload'
 export { Input } from './Input'
 export { Modal } from './Modal'
