@@ -1,14 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import {
-  CreateCategoryPanel,
-  FindCategoryPanel,
-  ListCategoriesPage,
-} from './commands/accounting-categories'
-import {
-  CreateProviderPanel,
-  FindProviderPanel,
-  ListProvidersPage,
-} from './commands/providers'
+import { ListCategoriesPage } from './commands/accounting-categories'
+import { ListProvidersPage } from './commands/providers'
 import { ChatLayout } from './components/layout'
 import { ModalManager } from './components/modals/ModalManager'
 import { AuthProvider, LoginPage, ProtectedRoute } from './features/auth'
@@ -66,16 +58,6 @@ function App() {
             {/* Command interface is always rendered, panels overlay via Outlet */}
             <Route element={<CommandInterface />}>
               <Route index element={null} />
-              <Route path="categories" element={<FindCategoryPanel />} />
-              <Route
-                path="categories/create"
-                element={<CreateCategoryPanel />}
-              />
-              <Route path="providers" element={<FindProviderPanel />} />
-              <Route
-                path="providers/create"
-                element={<CreateProviderPanel />}
-              />
             </Route>
           </Route>
 

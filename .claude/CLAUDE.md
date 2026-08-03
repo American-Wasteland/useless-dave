@@ -104,9 +104,10 @@ export const COMMANDS: CommandDefinition[] = [
 
 ### Available Commands
 
-Currently only 2 commands (easy to add more):
 - `/crear-categoria-contable` - Create accounting category
 - `/buscar-categoria-contable` - Find accounting categories
+- `/crear-proveedor` - Create provider
+- `/buscar-proveedor` - Find provider
 
 ### Adding a New Command
 
@@ -117,21 +118,18 @@ Currently only 2 commands (easy to add more):
      name: '/mi-comando',
      description: 'Descripción del comando',
      icon: '🎯',
-     targetPath: '/my-page',
+     targetPath: '/my-entity?modal=myentity&type=action',  // Can include query params
      parameters: [
        { name: 'param1', label: 'Parámetro 1', type: 'text', required: true },
      ],
    }
    ```
 
-2. **Add route** in `App.tsx`:
-   ```tsx
-   <Route path="my-page" element={<MyPage />} />
-   ```
+2. **Create entity page and modal manager** (see Entity Management Pattern above)
 
-3. **Create page component** that reads params from URL query string
-
-That's it! The CommandInput handles the rest.
+That's it! The CommandInput handles the rest:
+- If `targetPath` contains query params, they are merged with collected parameters
+- Example: `/providers?modal=provider&type=find` + `{query: "Amer"}` → `/providers?modal=provider&type=find&query=Amer`
 
 ## UI/UX Guidelines
 
@@ -256,8 +254,44 @@ Examples:
    ```
 
 3. **Create individual modals** using `SlidePanel`
-   - SlidePanel automatically clears `modal`, `type`, and `id` params on close
+   - SlidePanel automatically clears ALL query params on close
    - No need for manual `onClose` handlers
+
+#### Entity Management Pattern
+
+**IMPORTANT**: All entity management (CRUD operations) should be centralized on a single dedicated page per entity.
+
+**Pattern**:
+- Each entity has one dedicated page (e.g., `/accountancy/providers`)
+- All commands for that entity navigate to that page with modal query params
+- All CRUD operations (create, find, view, update) happen through modals on that page
+
+**Example: Providers**
+
+Commands in registry:
+```typescript
+{
+  id: 'create-provider',
+  name: '/crear-proveedor',
+  targetPath: '/accountancy/providers?modal=provider&type=create',
+  parameters: [...]
+}
+
+{
+  id: 'find-provider',
+  name: '/buscar-proveedor',
+  targetPath: '/accountancy/providers?modal=provider&type=find',
+  parameters: [{ name: 'query', ... }]
+}
+```
+
+All these commands navigate to `/accountancy/providers` with different modal states. The `ProviderModalManager` handles routing to the appropriate modal based on query params.
+
+**Benefits**:
+- Single source of truth for entity management
+- Consistent URLs and deep-linking
+- Better browser history management
+- Cleaner command definitions
 
 #### Navigation Best Practices
 

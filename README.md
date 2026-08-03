@@ -46,6 +46,43 @@ User types: "Materiales" → Enter
 
 - `/crear-categoria-contable` - Create accounting category
 - `/buscar-categoria-contable` - Find accounting categories
+- `/crear-proveedor` - Create provider
+- `/buscar-proveedor` - Find provider
+
+### Entity Management Pattern
+
+**All entity CRUD operations are centralized on a single dedicated page per entity.**
+
+Each entity has:
+- One dedicated page (e.g., `/accountancy/providers`)
+- Commands that navigate to that page with modal query params
+- All operations (create, find, view, update) handled through modals
+
+**Example: Provider Commands**
+
+```typescript
+// Create provider command
+{
+  id: 'create-provider',
+  name: '/crear-proveedor',
+  description: 'Crear un nuevo proveedor',
+  icon: '🏢',
+  targetPath: '/accountancy/providers?modal=provider&type=create',
+  parameters: [...]
+}
+
+// Find provider command
+{
+  id: 'find-provider',
+  name: '/buscar-proveedor',
+  description: 'Buscar un proveedor',
+  icon: '🔍',
+  targetPath: '/accountancy/providers?modal=provider&type=find',
+  parameters: [{ name: 'query', ... }]
+}
+```
+
+Both commands navigate to the same page (`/accountancy/providers`) but with different modal states.
 
 ### Adding a New Command
 
@@ -53,15 +90,15 @@ User types: "Materiales" → Enter
 
 ```typescript
 {
-  id: 'create-provider',
-  name: '/crear-proveedor',              // Spanish name
-  description: 'Crear un nuevo proveedor',
-  icon: '🏢',
-  targetPath: '/providers/create',
+  id: 'my-command',
+  name: '/mi-comando',                    // Spanish name
+  description: 'Descripción del comando',
+  icon: '🎯',
+  targetPath: '/my-entity?modal=myentity&type=action',  // Navigate to entity page with modal
   parameters: [
     {
-      name: 'name',                       // English param name
-      label: 'Nombre del proveedor',     // Spanish prompt
+      name: 'paramName',                  // English param name
+      label: 'Etiqueta del parámetro',   // Spanish prompt
       type: 'text',
       required: true,
     },
@@ -69,23 +106,9 @@ User types: "Materiales" → Enter
 }
 ```
 
-**2. Add route** in `App.tsx`:
-```tsx
-<Route path="providers/create" element={<CreateProviderPage />} />
-```
+**2. Create modal manager and modals** (see Modal Management section below)
 
-**3. Create page component** that reads params from URL query string:
-```tsx
-import { useSearchParams } from 'react-router-dom'
-
-export function CreateProviderPage() {
-  const [searchParams] = useSearchParams()
-  const name = searchParams.get('name') || ''
-  // Execute API call and display results
-}
-```
-
-That's it! The command automatically appears in the dropdown.
+That's it! The command automatically appears in the dropdown and navigates with merged query params.
 
 ## Getting Started
 
@@ -186,7 +209,9 @@ All modals use a **centralized query parameter system** for consistency:
 **Architecture**:
 1. Global `ModalManager` routes by `modal` param
 2. Feature managers (e.g., `ProviderModalManager`) route by `type` param
-3. Individual modals use `SlidePanel` which auto-closes by clearing params
+3. Individual modals use `SlidePanel` which auto-closes by clearing ALL query params
+
+**Important**: When `SlidePanel` closes (X button or backdrop click), it clears all query parameters from the URL. This ensures clean navigation back to the entity page.
 
 ### UI Standards
 

@@ -5,13 +5,13 @@ export const findAccountingCategoryCommand: CommandDefinition = {
   name: '/buscar-categoria-contable',
   description: 'Buscar categorías contables existentes',
   icon: '🔍',
-  targetPath: '/categories',
+  targetPath: '/accountancy/categories?modal=category&type=find',
   parameters: [
     {
       name: 'query',
       label: 'Buscar por nombre',
       type: 'text',
-      required: true,
+      required: false,
       placeholder: 'ej: Insumos',
     },
   ],

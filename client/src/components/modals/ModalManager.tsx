@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom'
+import { CategoryModalManager } from '../../features/categories/CategoryModalManager'
 import { ProviderModalManager } from '../../features/providers'
 
 /**
@@ -18,9 +19,8 @@ export function ModalManager() {
   switch (modal) {
     case 'provider':
       return <ProviderModalManager />
-    // Add more modal managers here as needed
-    // case 'category':
-    //   return <CategoryModalManager />
+    case 'category':
+      return <CategoryModalManager />
     default:
       return null
   }

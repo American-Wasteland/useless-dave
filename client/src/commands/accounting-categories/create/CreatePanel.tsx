@@ -39,19 +39,15 @@ export function CreateCategoryPanel() {
       setSuccess(true)
       // Show success briefly, then close
       setTimeout(() => {
-        navigate(`/${companyId}`)
+        navigate(`/${companyId}/accountancy/categories`)
       }, 1500)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear categoría')
     }
   }
 
-  const handleClose = () => {
-    navigate(`/${companyId}`)
-  }
-
   return (
-    <SlidePanel title="Crear categoría contable" onClose={handleClose}>
+    <SlidePanel title="Crear categoría contable">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">
@@ -84,24 +80,14 @@ export function CreateCategoryPanel() {
           disabled={success}
         />
 
-        <div className="flex gap-3 pt-2">
-          <Button
-            type="submit"
-            isLoading={isCreating}
-            disabled={success}
-            className="flex-1"
-          >
-            Crear categoría
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isCreating}
-          >
-            Cancelar
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          isLoading={isCreating}
+          disabled={success}
+          className="w-full"
+        >
+          Crear categoría
+        </Button>
       </form>
     </SlidePanel>
   )
