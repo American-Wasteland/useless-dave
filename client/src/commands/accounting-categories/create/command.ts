@@ -5,7 +5,7 @@ export const createAccountingCategoryCommand: CommandDefinition = {
   name: '/crear-categoria-contable',
   description: 'Crear una nueva categoría contable',
   icon: '📊',
-  targetPath: '/accountancy/categories?modal=category&type=create',
+  targetPath: '/accountancy/categories?modal=category&mode=create',
   parameters: [
     {
       name: 'name',

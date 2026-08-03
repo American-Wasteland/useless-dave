@@ -14,7 +14,7 @@ export function ProviderViewModal() {
   // Build the edit URL
   const editUrl = (() => {
     const params = new URLSearchParams(searchParams)
-    params.set('type', 'update')
+    params.set('mode', 'update')
     return `?${params.toString()}`
   })()
 

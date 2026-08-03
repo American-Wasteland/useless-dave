@@ -12,12 +12,110 @@ Useless Dave is a small business ERP with an interactive command system. The nam
 | Styling | Tailwind CSS v4 |
 | State | React Query (TanStack Query) |
 | Linting | Biome (root-level config) |
-| Backend | Express + Firebase Functions (Node.js 20) |
-| Database | Firestore (server-side only, never from client) |
+| Backend | Express REST API + Firebase Functions (Node.js 20) |
+| Database | Firestore (server-side only, accessed via REST API) |
 | Auth | Firebase Auth (Google sign-in) |
 | Storage | Firebase Storage |
 | Commands | Interactive command system (Spanish UI, English code) |
 | Shared Types | `@useless-dave/shared` package (client + server) |
+
+## Backend Architecture
+
+All data operations go through **server-side REST API endpoints**. The client never accesses Firestore directly.
+
+### API Structure
+
+Each entity has a dedicated service and routes:
+- **Service** (`server/src/commands/{entity}/service.ts`) - Business logic and Firestore operations
+- **Routes** (`server/src/commands/{entity}/routes.ts`) - Express route handlers
+- **Types** (`shared/types/{entity}.ts`) - Shared TypeScript types
+
+### Available Endpoints
+
+**Accounting Categories** (`/api/companies/:companyId/accounting-categories`)
+- `GET /` - List all
+- `POST /` - Create
+- `GET /:id` - Get by ID
+- `PATCH /:id` - Update
+- `DELETE /:id` - Delete
+- `GET /search/:query` - Search
+
+**Cost Centers** (`/api/companies/:companyId/cost-centers`)
+- `GET /` - List all
+- `POST /` - Create (requires `name`, `type`)
+- `GET /:id` - Get by ID
+- `PATCH /:id` - Update
+- `DELETE /:id` - Delete
+- `GET /search/:query` - Search
+
+**Providers** (`/api/companies/:companyId/providers`)
+- `GET /` - List all
+- `POST /` - Create with file uploads (requires `name`, `nit`, `providerType`)
+- `GET /:id` - Get by ID
+- `PATCH /:id` - Update with file uploads
+- `DELETE /:id` - Delete (also removes uploaded files)
+- `GET /search/:query` - Search
+- `GET /nit/:nit` - Find by NIT
+
+### Adding a New Entity
+
+1. **Create shared types** in `shared/types/{entity}.ts`:
+   ```typescript
+   export interface MyEntity extends Entity {
+     name: string
+     // ... fields
+   }
+   export interface CreateMyEntityInput { ... }
+   export interface UpdateMyEntityInput { ... }
+   ```
+
+2. **Export from shared package** in `shared/types/index.ts`
+
+3. **Create service** in `server/src/commands/{entity}/service.ts`
+
+4. **Create routes** in `server/src/commands/{entity}/routes.ts`
+
+5. **Register routes** in `server/src/dev-server.ts`
+
+6. **Client service** (`client/src/commands/{entity}/shared/{entity}Service.ts`) - API client functions
+
+7. **Client hooks** (`client/src/hooks/use{Entity}.ts`) - React Query hooks that use the service
+
+### Client-Side Pattern
+
+Each entity has client-side API integration:
+
+```
+client/src/commands/{entity}/shared/
+├── api.ts              # Generic apiRequest helper
+├── types.ts            # Re-export shared types
+└── {entity}Service.ts  # API client functions (getCostCenters, createCostCenter, etc.)
+```
+
+Example service function:
+```typescript
+export async function createCostCenter(
+  companyId: string,
+  data: CreateCostCenterInput,
+): Promise<CostCenter> {
+  return apiRequest<CostCenter>(`/companies/${companyId}/cost-centers`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+```
+
+Hooks use React Query:
+```typescript
+const createMutation = useMutation({
+  mutationFn: async (data: CreateCostCenterInput) => {
+    return costCenterService.createCostCenter(companyId!, data)
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: costCenterKeys.list(companyId!) })
+  },
+})
+```
 
 ## Multi-Company Support
 
@@ -106,6 +204,8 @@ export const COMMANDS: CommandDefinition[] = [
 
 - `/crear-categoria-contable` - Create accounting category
 - `/buscar-categoria-contable` - Find accounting categories
+- `/crear-centro-costo` - Create cost center
+- `/buscar-centro-costo` - Find cost centers
 - `/crear-proveedor` - Create provider
 - `/buscar-proveedor` - Find provider
 
@@ -118,7 +218,7 @@ export const COMMANDS: CommandDefinition[] = [
      name: '/mi-comando',
      description: 'Descripción del comando',
      icon: '🎯',
-     targetPath: '/my-entity?modal=myentity&type=action',  // Can include query params
+     targetPath: '/my-entity?modal=myentity&mode=action',  // Can include query params
      parameters: [
        { name: 'param1', label: 'Parámetro 1', type: 'text', required: true },
      ],
@@ -129,7 +229,7 @@ export const COMMANDS: CommandDefinition[] = [
 
 That's it! The CommandInput handles the rest:
 - If `targetPath` contains query params, they are merged with collected parameters
-- Example: `/providers?modal=provider&type=find` + `{query: "Amer"}` → `/providers?modal=provider&type=find&query=Amer`
+- Example: `/providers?modal=provider&mode=find` + `{query: "Amer"}` → `/providers?modal=provider&mode=find&query=Amer`
 
 ## UI/UX Guidelines
 
@@ -196,13 +296,13 @@ navigate(`/${companyId}`)
 #### Query Parameter Format
 
 ```
-?modal={entity}&type={action}&id={id}
+?modal={entity}&mode={action}&id={id}
 ```
 
 Examples:
-- Create: `?modal=provider&type=create`
-- View: `?modal=provider&type=view&id=123`
-- Update: `?modal=provider&type=update&id=123`
+- Create: `?modal=provider&mode=create`
+- View: `?modal=provider&mode=view&id=123`
+- Update: `?modal=provider&mode=update&id=123`
 
 #### Architecture
 
@@ -211,7 +311,7 @@ Examples:
    - Routes to feature-specific modal managers based on `modal` param
 
 2. **Feature Modal Manager** (e.g., `ProviderModalManager.tsx`)
-   - Routes to specific modals based on `type` param
+   - Routes to specific modals based on `mode` param
    - One per entity (providers, categories, etc.)
 
 3. **Individual Modals** (e.g., `ProviderCreateModal.tsx`, `ProviderViewModal.tsx`)
@@ -225,10 +325,10 @@ Examples:
    // client/src/features/myentity/MyEntityModalManager.tsx
    export function MyEntityModalManager() {
      const [searchParams] = useSearchParams()
-     const type = searchParams.get('type')
+     const mode = searchParams.get('mode')
      const entityId = searchParams.get('id')
 
-     switch (type) {
+     switch (mode) {
        case 'create':
          return <MyEntityCreateModal />
        case 'view':
@@ -273,14 +373,14 @@ Commands in registry:
 {
   id: 'create-provider',
   name: '/crear-proveedor',
-  targetPath: '/accountancy/providers?modal=provider&type=create',
+  targetPath: '/accountancy/providers?modal=provider&mode=create',
   parameters: [...]
 }
 
 {
   id: 'find-provider',
   name: '/buscar-proveedor',
-  targetPath: '/accountancy/providers?modal=provider&type=find',
+  targetPath: '/accountancy/providers?modal=provider&mode=find',
   parameters: [{ name: 'query', ... }]
 }
 ```
@@ -295,24 +395,10 @@ All these commands navigate to `/accountancy/providers` with different modal sta
 
 #### Navigation Best Practices
 
-- **Use Links, not buttons**: Prefer `<Link to={url}>` over `onClick` handlers for better UX (right-click, copy link, browser history)
+- **CRITICAL**: Use `<Link>` for ALL navigation (not `onClick` with `navigate()`)
+- Benefits: Better UX (right-click, copy link, browser history), proper accessibility
 - **Back navigation**: Use `navigate(-1)` for back buttons to leverage browser history
-- **Example**:
-  ```typescript
-  // Good: Edit button as Link
-  const editUrl = (() => {
-    const params = new URLSearchParams(searchParams)
-    params.set('type', 'update')
-    return `?${params.toString()}`
-  })()
-
-  <Link to={editUrl}>
-    <Button>Editar</Button>
-  </Link>
-
-  // Back button
-  <Button onClick={() => navigate(-1)}>Volver</Button>
-  ```
+- **Exception**: Delete actions can use buttons since they don't navigate (they open confirmation modals)
 
 ### UI Standards
 
@@ -334,20 +420,121 @@ The `normal-case` utility is critical to override any inherited text transformat
 
 #### Table Patterns
 
-- **Clickable rows**: Make entire rows clickable for view action
-- **Action buttons**: Use `stopPropagation` to prevent row click:
-  ```tsx
-  <tr onClick={() => handleView(item.id)}>
-    <td>
-      <button onClick={(e) => {
-        e.stopPropagation()
-        handleEdit(item.id)
-      }}>
-        Edit
-      </button>
-    </td>
-  </tr>
-  ```
+**Clickable rows** - Use the "stretched link" pattern to make entire rows clickable:
+
+**Pattern Requirements**:
+- Row: `className="hover:bg-gray-50 transition-colors relative"`
+- First column link: Add `before:absolute before:inset-0` to stretch over entire row
+- Actions column: Add `relative z-10` to keep buttons/links clickable above the stretched link
+- View action: First column link navigates to view modal
+- Edit action: MUST be a `<Link>`, not a button
+- Delete action: Button is OK (doesn't navigate, opens confirmation modal)
+
+**Full example**:
+```tsx
+<tbody className="bg-white divide-y divide-gray-200">
+  {items.map((item) => (
+    <tr
+      key={item.id}
+      className="hover:bg-gray-50 transition-colors relative"
+    >
+      {/* First column with stretched link */}
+      <td className="px-6 py-4">
+        <Link
+          to={`/${companyId}/entity?modal=entity&mode=view&id=${item.id}`}
+          className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
+        >
+          {item.name}
+        </Link>
+      </td>
+
+      {/* Other columns */}
+      <td className="px-6 py-4">
+        <div className="text-sm text-gray-500">
+          {item.description}
+        </div>
+      </td>
+
+      {/* Actions column - z-10 to work above stretched link */}
+      <td className="px-6 py-4 relative z-10">
+        {/* Edit: Must be Link */}
+        <Link
+          to={`/${companyId}/entity?modal=entity&mode=update&id=${item.id}`}
+          className="inline-flex items-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors mr-1"
+        >
+          <Pencil className="h-4 w-4" />
+        </Link>
+
+        {/* Delete: Button OK (no navigation) */}
+        <button
+          type="button"
+          onClick={() => handleDeleteClick(item.id, item.name)}
+          className="inline-flex items-center p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+```
+
+#### Action Button Standards
+
+**IMPORTANT**: All action buttons in tables must follow these color standards:
+
+**Edit buttons** - Blue hover:
+```tsx
+className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+```
+
+**Delete buttons** - Red hover:
+```tsx
+className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+```
+
+**Delete confirmation** - Always use `ConfirmModal` component:
+```tsx
+import { ConfirmModal } from '../../../components/ui'
+
+const [deleteConfirm, setDeleteConfirm] = useState<{
+  id: string
+  name: string
+} | null>(null)
+const [isDeleting, setIsDeleting] = useState(false)
+
+const handleDeleteClick = (id: string, name: string) => {
+  setDeleteConfirm({ id, name })
+}
+
+const handleDeleteConfirm = async () => {
+  if (!deleteConfirm) return
+  setIsDeleting(true)
+  try {
+    await deleteEntity(deleteConfirm.id)
+    setDeleteConfirm(null)
+  } catch (err) {
+    alert(err instanceof Error ? err.message : 'Error al eliminar')
+  } finally {
+    setIsDeleting(false)
+  }
+}
+
+// In JSX:
+<ConfirmModal
+  isOpen={!!deleteConfirm}
+  onClose={() => setDeleteConfirm(null)}
+  onConfirm={handleDeleteConfirm}
+  title="Eliminar entidad"
+  message={`¿Estás seguro de que deseas eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  variant="danger"
+  isLoading={isDeleting}
+/>
+```
+
+**NEVER** use native `confirm()` or `window.confirm()` - always use `ConfirmModal` for consistency.
 
 ### Layering - Portals + Minimal Z-Index
 

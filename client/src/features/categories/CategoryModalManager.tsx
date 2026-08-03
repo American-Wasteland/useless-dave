@@ -3,18 +3,18 @@ import { CreateCategoryPanel } from '../../commands/accounting-categories/create
 import { FindCategoryPanel } from '../../commands/accounting-categories/find/FindPanel'
 
 /**
- * Manages category modals based on type query parameter
+ * Manages category modals based on mode query parameter
  * Called by global ModalManager when modal=category
  *
  * Usage:
- * - Find: ?modal=category&type=find
- * - Create: ?modal=category&type=create
+ * - Find: ?modal=category&mode=find
+ * - Create: ?modal=category&mode=create
  */
 export function CategoryModalManager() {
   const [searchParams] = useSearchParams()
-  const type = searchParams.get('type')
+  const mode = searchParams.get('mode')
 
-  switch (type) {
+  switch (mode) {
     case 'find':
       return <FindCategoryPanel />
     case 'create':

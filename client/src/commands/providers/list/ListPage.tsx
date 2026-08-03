@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ConfirmModal } from '../../../components/ui'
 import { useCompanyId } from '../../../hooks/useCompanyId'
 import { useDeleteProvider } from './useDeleteProvider'
@@ -10,7 +10,6 @@ const ITEMS_PER_PAGE = 20
 
 export function ListProvidersPage() {
   const companyId = useCompanyId()
-  const navigate = useNavigate()
   const { providers, isLoading } = useListProviders()
   const { deleteProvider, isDeleting } = useDeleteProvider()
   const [currentPage, setCurrentPage] = useState(1)
@@ -29,18 +28,6 @@ export function ListProvidersPage() {
       <div className="flex items-center justify-center h-64">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
       </div>
-    )
-  }
-
-  const handleView = (providerId: string) => {
-    navigate(
-      `/${companyId}/accountancy/providers?modal=provider&type=view&id=${providerId}`,
-    )
-  }
-
-  const handleEdit = (providerId: string) => {
-    navigate(
-      `/${companyId}/accountancy/providers?modal=provider&type=update&id=${providerId}`,
     )
   }
 
@@ -122,8 +109,7 @@ export function ListProvidersPage() {
                   {currentProviders.map((provider) => (
                     <tr
                       key={provider.id}
-                      onClick={() => handleView(provider.id)}
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-50 transition-colors relative"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
@@ -133,9 +119,12 @@ export function ListProvidersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <Link
+                          to={`/${companyId}/accountancy/providers?modal=provider&mode=view&id=${provider.id}`}
+                          className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
+                        >
                           {provider.name}
-                        </div>
+                        </Link>
                         {provider.email && (
                           <div className="text-xs text-gray-500">
                             {provider.email}
@@ -164,25 +153,20 @@ export function ListProvidersPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 relative z-10">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEdit(provider.id)
-                            }}
+                          <Link
+                            to={`/${companyId}/accountancy/providers?modal=provider&mode=update&id=${provider.id}`}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Editar"
                           >
                             <Pencil className="h-4 w-4" />
-                          </button>
+                          </Link>
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
+                            onClick={() =>
                               handleDeleteClick(provider.id, provider.name)
-                            }}
+                            }
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Eliminar"
                           >

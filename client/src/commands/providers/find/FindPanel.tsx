@@ -65,7 +65,7 @@ export function FindProviderPanel() {
             {filteredProviders.map((provider) => (
               <Link
                 key={provider.id}
-                to={`/${companyId}/accountancy/providers?modal=provider&type=view&id=${provider.id}`}
+                to={`/${companyId}/accountancy/providers?modal=provider&mode=view&id=${provider.id}`}
                 className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2">

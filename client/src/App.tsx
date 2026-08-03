@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ListCategoriesPage } from './commands/accounting-categories'
+import { ListCostCentersPage } from './commands/cost-centers'
 import { ListProvidersPage } from './commands/providers'
 import { ChatLayout } from './components/layout'
 import { ModalManager } from './components/modals/ModalManager'
@@ -49,6 +50,10 @@ function App() {
             <Route
               path="accountancy/categories"
               element={<ListCategoriesPage />}
+            />
+            <Route
+              path="accountancy/cost-centers"
+              element={<ListCostCentersPage />}
             />
             <Route
               path="accountancy/providers"

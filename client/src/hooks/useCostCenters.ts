@@ -1,43 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-} from 'firebase/firestore'
-import { db } from '../lib/firebase'
-import type { CostCenter } from '../types'
+import * as costCenterService from '../commands/cost-centers/shared/costCenterService'
+import type {
+  CostCenter,
+  CreateCostCenterInput,
+  UpdateCostCenterInput,
+} from '../commands/cost-centers/shared/types'
 import { useCompanyId } from './useCompanyId'
-
-const getCostCentersCollection = (companyId: string) =>
-  collection(db, 'companies', companyId, 'costCenters')
-
-export async function getCostCenter(
-  companyId: string,
-  costCenterId: string,
-): Promise<CostCenter | null> {
-  const docRef = doc(db, 'companies', companyId, 'costCenters', costCenterId)
-  const snapshot = await getDoc(docRef)
-  if (!snapshot.exists()) return null
-  return { id: snapshot.id, ...snapshot.data() } as CostCenter
-}
-
-async function fetchCostCenters(companyId: string): Promise<CostCenter[]> {
-  const q = query(getCostCentersCollection(companyId), orderBy('name'))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() }) as CostCenter,
-  )
-}
 
 export const costCenterKeys = {
   all: ['costCenters'] as const,
   lists: () => [...costCenterKeys.all, 'list'] as const,
   list: (companyId: string) => [...costCenterKeys.lists(), companyId] as const,
+  detail: (companyId: string, id: string) =>
+    [...costCenterKeys.all, 'detail', companyId, id] as const,
+}
+
+export async function getCostCenter(
+  companyId: string,
+  costCenterId: string,
+): Promise<CostCenter | null> {
+  try {
+    return await costCenterService.getCostCenterById(companyId, costCenterId)
+  } catch (_error) {
+    return null
+  }
 }
 
 export function useCostCenters() {
@@ -46,22 +32,30 @@ export function useCostCenters() {
 
   const query = useQuery({
     queryKey: costCenterKeys.list(companyId || ''),
-    queryFn: () => fetchCostCenters(companyId!),
+    queryFn: () => costCenterService.getCostCenters(companyId!),
     enabled: !!companyId,
   })
 
   const createMutation = useMutation({
-    mutationFn: async ({
-      name,
-      description,
-    }: {
-      name: string
-      description?: string
-    }) => {
-      await addDoc(getCostCentersCollection(companyId!), {
-        name,
-        description: description || null,
+    mutationFn: async (data: CreateCostCenterInput) => {
+      return costCenterService.createCostCenter(companyId!, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: costCenterKeys.list(companyId!),
       })
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      costCenterId,
+      data,
+    }: {
+      costCenterId: string
+      data: UpdateCostCenterInput
+    }) => {
+      return costCenterService.updateCostCenter(companyId!, costCenterId, data)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -72,9 +66,7 @@ export function useCostCenters() {
 
   const deleteMutation = useMutation({
     mutationFn: async (costCenterId: string) => {
-      await deleteDoc(
-        doc(db, 'companies', companyId!, 'costCenters', costCenterId),
-      )
+      return costCenterService.deleteCostCenter(companyId!, costCenterId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -83,8 +75,15 @@ export function useCostCenters() {
     },
   })
 
-  const createCostCenter = async (name: string, description?: string) => {
-    await createMutation.mutateAsync({ name, description })
+  const createCostCenter = async (data: CreateCostCenterInput) => {
+    await createMutation.mutateAsync(data)
+  }
+
+  const updateCostCenter = async (
+    costCenterId: string,
+    data: UpdateCostCenterInput,
+  ) => {
+    await updateMutation.mutateAsync({ costCenterId, data })
   }
 
   const deleteCostCenter = async (costCenterId: string) => {
@@ -96,6 +95,7 @@ export function useCostCenters() {
     isLoading: query.isLoading,
     refetch: query.refetch,
     createCostCenter,
+    updateCostCenter,
     deleteCostCenter,
   }
 }

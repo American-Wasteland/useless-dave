@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button, FileUpload, Input, Select } from '../../components/ui'
 import { useCostCenters } from '../../hooks/useCostCenters'
 import { formatDateInput } from '../../lib/utils'
@@ -167,13 +167,11 @@ export function ExpenseForm() {
           <Button type="submit" isLoading={isLoading}>
             Crear Gasto
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate('/expenses')}
-          >
-            Cancelar
-          </Button>
+          <Link to="/expenses">
+            <Button type="button" variant="secondary">
+              Cancelar
+            </Button>
+          </Link>
         </div>
       </form>
 

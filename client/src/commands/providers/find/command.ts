@@ -5,7 +5,7 @@ export const findProviderCommand: CommandDefinition = {
   name: '/buscar-proveedor',
   description: 'Buscar un proveedor por nombre o NIT',
   icon: '🔍',
-  targetPath: '/accountancy/providers?modal=provider&type=find',
+  targetPath: '/accountancy/providers?modal=provider&mode=find',
   parameters: [
     {
       name: 'query',

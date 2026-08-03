@@ -65,19 +65,12 @@ export interface Provider extends ThirdParty {
 
 export interface Client extends ThirdParty {}
 
-export type CostCenterType = 'project' | 'operation'
-export type CostCenterStatus = 'active' | 'completed' | 'cancelled'
-
-export interface CostCenter {
-  id: string
-  name: string
-  description?: string
-  type: CostCenterType
-  client?: Client
-  status: CostCenterStatus
-  createdAt?: Timestamp
-  updatedAt?: Timestamp
-}
+// Cost Center types - re-exported from shared package
+export type {
+  CostCenter,
+  CostCenterStatus,
+  CostCenterType,
+} from '@useless-dave/shared'
 
 export interface Category {
   id: string

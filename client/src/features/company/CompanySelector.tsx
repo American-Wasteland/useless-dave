@@ -1,6 +1,6 @@
 import { Building2, ChevronRight, Plus } from 'lucide-react'
 import { useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import daveEmblem from '/dave-emblem.svg'
 import { Button } from '../../components/ui/Button'
 import type { Company } from '../../types'
@@ -122,15 +122,16 @@ export function CompanySelector() {
             </div>
 
             {/* Create new company */}
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full font-bold rounded-xl"
-              onClick={() => navigate('/create-company')}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Agregar negocio
-            </Button>
+            <Link to="/create-company">
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full font-bold rounded-xl"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Agregar negocio
+              </Button>
+            </Link>
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6 font-medium">

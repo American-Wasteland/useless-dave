@@ -9,11 +9,48 @@ A lightweight, fun ERP system designed for small businesses. Named after the pun
 | Frontend | React 18 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 |
 | Linting | Biome |
-| Backend | Express + Firebase Functions (Node.js 20) |
-| Database | Firebase Firestore |
+| Backend | Express REST API + Firebase Functions (Node.js 20) |
+| Database | Firebase Firestore (server-side only) |
 | Auth | Firebase Auth (Google sign-in) |
 | Storage | Firebase Storage |
 | Hosting | Firebase Hosting |
+
+## Architecture
+
+### Backend REST API
+
+All data operations go through server-side REST endpoints. The client never accesses Firestore directly.
+
+**Available Endpoints:**
+- `/api/companies/:companyId/accounting-categories` - Category CRUD
+- `/api/companies/:companyId/cost-centers` - Cost center CRUD
+- `/api/companies/:companyId/providers` - Provider CRUD with file uploads
+
+**Server Structure** (per entity):
+- **Service** - Business logic (`server/src/commands/{entity}/service.ts`)
+- **Routes** - Express handlers (`server/src/commands/{entity}/routes.ts`)
+- **Shared Types** - TypeScript interfaces (`shared/types/{entity}.ts`)
+
+**Client Structure** (per entity):
+- **API Service** - HTTP client (`client/src/commands/{entity}/shared/{entity}Service.ts`)
+- **React Query Hook** - State management (`client/src/hooks/use{Entity}.ts`)
+
+Example:
+```typescript
+// Client service
+export async function createCostCenter(companyId: string, data: CreateCostCenterInput) {
+  return apiRequest(`/companies/${companyId}/cost-centers`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+// Hook
+const { createCostCenter } = useCostCenters()
+await createCostCenter({ name, type, status })
+```
+
+See `server/src/dev-server.ts` for full endpoint list.
 
 ## Features
 
@@ -46,6 +83,8 @@ User types: "Materiales" → Enter
 
 - `/crear-categoria-contable` - Create accounting category
 - `/buscar-categoria-contable` - Find accounting categories
+- `/crear-centro-costo` - Create cost center
+- `/buscar-centro-costo` - Find cost centers
 - `/crear-proveedor` - Create provider
 - `/buscar-proveedor` - Find provider
 
@@ -67,7 +106,7 @@ Each entity has:
   name: '/crear-proveedor',
   description: 'Crear un nuevo proveedor',
   icon: '🏢',
-  targetPath: '/accountancy/providers?modal=provider&type=create',
+  targetPath: '/accountancy/providers?modal=provider&mode=create',
   parameters: [...]
 }
 
@@ -77,7 +116,7 @@ Each entity has:
   name: '/buscar-proveedor',
   description: 'Buscar un proveedor',
   icon: '🔍',
-  targetPath: '/accountancy/providers?modal=provider&type=find',
+  targetPath: '/accountancy/providers?modal=provider&mode=find',
   parameters: [{ name: 'query', ... }]
 }
 ```
@@ -94,7 +133,7 @@ Both commands navigate to the same page (`/accountancy/providers`) but with diff
   name: '/mi-comando',                    // Spanish name
   description: 'Descripción del comando',
   icon: '🎯',
-  targetPath: '/my-entity?modal=myentity&type=action',  // Navigate to entity page with modal
+  targetPath: '/my-entity?modal=myentity&mode=action',  // Navigate to entity page with modal
   parameters: [
     {
       name: 'paramName',                  // English param name
@@ -193,12 +232,12 @@ npm run dev
 
 All modals use a **centralized query parameter system** for consistency:
 
-**Format**: `?modal={entity}&type={action}&id={id}`
+**Format**: `?modal={entity}&mode={action}&id={id}`
 
 **Examples**:
-- Create: `?modal=provider&type=create`
-- View: `?modal=provider&type=view&id=abc123`
-- Update: `?modal=provider&type=update&id=abc123`
+- Create: `?modal=provider&mode=create`
+- View: `?modal=provider&mode=view&id=abc123`
+- Update: `?modal=provider&mode=update&id=abc123`
 
 **Benefits**:
 - Deep-linkable (share/bookmark modal states)
@@ -208,7 +247,7 @@ All modals use a **centralized query parameter system** for consistency:
 
 **Architecture**:
 1. Global `ModalManager` routes by `modal` param
-2. Feature managers (e.g., `ProviderModalManager`) route by `type` param
+2. Feature managers (e.g., `ProviderModalManager`) route by `mode` param
 3. Individual modals use `SlidePanel` which auto-closes by clearing ALL query params
 
 **Important**: When `SlidePanel` closes (X button or backdrop click), it clears all query parameters from the URL. This ensures clean navigation back to the entity page.
@@ -221,16 +260,82 @@ All modals use a **centralized query parameter system** for consistency:
 - Spanish UI, English code (always)
 
 **Navigation**:
-- Use `<Link>` over `onClick` for better UX (right-click, copy link)
+- **CRITICAL**: Use `<Link>` for ALL navigation (not `onClick` with `navigate()`)
 - Back buttons use `navigate(-1)` to leverage browser history
-- Table rows are clickable for view, action buttons use `stopPropagation`
+- **Table rows**: Use the "stretched link" pattern for clickable rows:
+  - Row: `className="hover:bg-gray-50 transition-colors relative"`
+  - First column link: Add `before:absolute before:inset-0` to stretch over entire row
+  - Actions column: Add `relative z-10` to keep buttons clickable above the stretched link
+  - Edit action: Must be a `<Link>`, not a button
+  - Delete action: Can be a button (no navigation, just triggers confirmation modal)
+
+**Action Buttons**:
+- Edit buttons: `hover:text-blue-600 hover:bg-blue-50`
+- Delete buttons: `hover:text-red-600 hover:bg-red-50`
+- All delete actions must use `ConfirmModal` (never native `confirm()`)
+- Base color: `text-gray-400` (neutral when not hovered)
 
 **Example**:
 ```tsx
-// Good: Edit as Link
-<Link to="?modal=provider&type=update&id=123">
-  <Button>Editar</Button>
-</Link>
+// Good: Clickable table row with stretched link pattern
+<tbody className="bg-white divide-y divide-gray-200">
+  {items.map((item) => (
+    <tr
+      key={item.id}
+      className="hover:bg-gray-50 transition-colors relative"
+    >
+      {/* First column with stretched link */}
+      <td className="px-6 py-4">
+        <Link
+          to={`/${companyId}/entity?modal=entity&mode=view&id=${item.id}`}
+          className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
+        >
+          {item.name}
+        </Link>
+      </td>
+
+      {/* Other columns */}
+      <td className="px-6 py-4">
+        <div className="text-sm text-gray-500">
+          {item.description}
+        </div>
+      </td>
+
+      {/* Actions column - must have z-10 to work above stretched link */}
+      <td className="px-6 py-4 relative z-10">
+        <div className="flex gap-2">
+          {/* Edit: Must be Link */}
+          <Link
+            to={`/${companyId}/entity?modal=entity&mode=update&id=${item.id}`}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+
+          {/* Delete: Button is OK (no navigation) */}
+          <button
+            onClick={() => handleDeleteClick(item.id, item.name)}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
+// Good: Delete with ConfirmModal
+const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | null>(null)
+
+<ConfirmModal
+  isOpen={!!deleteConfirm}
+  onClose={() => setDeleteConfirm(null)}
+  onConfirm={handleDeleteConfirm}
+  title="Eliminar entidad"
+  message={`¿Estás seguro de que deseas eliminar "${deleteConfirm?.name}"?`}
+  variant="danger"
+/>
 
 // Good: Back button
 <Button onClick={() => navigate(-1)}>Volver</Button>
@@ -275,11 +380,24 @@ useless-dave/
 │   │   └── types/                    # TypeScript interfaces
 │   └── vite.config.ts
 │
-├── server/                           # Express + Firebase Functions
+├── server/                           # Express REST API
 │   └── src/
-│       ├── commands/registry.ts      # Server command registry
-│       ├── dev-server.ts             # REST endpoints
-│       └── tools/handlers.ts         # Business logic
+│       ├── commands/                 # Entity endpoints
+│       │   ├── accounting-categories/
+│       │   │   ├── service.ts        # Business logic
+│       │   │   ├── routes.ts         # Express routes
+│       │   │   └── types.ts          # Type exports
+│       │   ├── cost-centers/
+│       │   └── providers/
+│       ├── dev-server.ts             # Main server & route registration
+│       └── lib/                      # Firebase admin, utilities
+│
+├── shared/                           # Shared types package
+│   └── types/                        # Entity DTOs
+│       ├── accounting-categories.ts
+│       ├── cost-centers.ts
+│       ├── providers.ts
+│       └── index.ts
 │
 ├── biome.json                        # Linting configuration
 ├── firebase.json                     # Emulators + hosting config
