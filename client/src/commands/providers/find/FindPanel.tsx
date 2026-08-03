@@ -1,12 +1,12 @@
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Input, SlidePanel } from '../../../components/ui'
+import { useCompanyId } from '../../../hooks/useCompanyId'
 import { useFindProviders } from './useFindProviders'
 
 export function FindProviderPanel() {
-  const navigate = useNavigate()
-
+  const companyId = useCompanyId()
   const [searchParams] = useSearchParams()
   const { providers, isLoading } = useFindProviders()
 
@@ -33,14 +33,9 @@ export function FindProviderPanel() {
     )
   }, [providers, query, selectedId])
 
-  const handleClose = () => {
-    navigate(`/${companyId}`)
-  }
-
   return (
     <SlidePanel
       title={selectedId ? 'Detalle del proveedor' : 'Buscar proveedores'}
-      onClose={handleClose}
     >
       <div className="space-y-4">
         {!selectedId && (
@@ -68,13 +63,14 @@ export function FindProviderPanel() {
         ) : (
           <div className="space-y-2">
             {filteredProviders.map((provider) => (
-              <div
+              <Link
                 key={provider.id}
-                className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors"
+                to={`/${companyId}/accountancy/providers?modal=provider&type=view&id=${provider.id}`}
+                className="block p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <h3 className="font-medium text-gray-900">
                         {provider.name}
                       </h3>
@@ -108,33 +104,11 @@ export function FindProviderPanel() {
                       </p>
                     )}
                   </div>
-                  <div className="flex flex-col gap-1">
-                    {provider.rutUrl && (
-                      <a
-                        href={provider.rutUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-1 text-xs text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                      >
-                        RUT
-                      </a>
-                    )}
-                    {provider.bankAccountUrl && (
-                      <a
-                        href={provider.bankAccountUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded transition-colors"
-                      >
-                        Cuenta Bancaria
-                      </a>
-                    )}
-                  </div>
                 </div>
                 <div className="mt-2 pt-2 border-t border-gray-100">
                   <p className="text-xs text-gray-400">ID: {provider.id}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

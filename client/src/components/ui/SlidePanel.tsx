@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 
 interface SlidePanelProps {
@@ -18,14 +18,11 @@ const sizeClasses = {
 
 export function SlidePanel({ title, children, size = 'md' }: SlidePanelProps) {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const location = useLocation()
 
   const handleClose = () => {
-    // Remove modal-related query params
-    searchParams.delete('modal')
-    searchParams.delete('type')
-    searchParams.delete('id')
-    navigate(`?${searchParams.toString()}`, { replace: true })
+    // Remove all query params
+    navigate(location.pathname, { replace: true })
   }
 
   return createPortal(

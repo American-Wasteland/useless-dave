@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom'
+import { FindProviderPanel } from '../../commands/providers/find/FindPanel'
 import { ProviderCreateModal } from './ProviderCreateModal'
 import { ProviderUpdateModal } from './ProviderUpdateModal'
 import { ProviderViewModal } from './ProviderViewModal'
@@ -8,6 +9,7 @@ import { ProviderViewModal } from './ProviderViewModal'
  * Called by global ModalManager when modal=provider
  *
  * Usage:
+ * - Find: ?modal=provider&type=find
  * - Create: ?modal=provider&type=create
  * - View: ?modal=provider&type=view&id=providerId
  * - Update: ?modal=provider&type=update&id=providerId
@@ -18,6 +20,8 @@ export function ProviderModalManager() {
   const providerId = searchParams.get('id')
 
   switch (type) {
+    case 'find':
+      return <FindProviderPanel />
     case 'create':
       return <ProviderCreateModal />
     case 'view':

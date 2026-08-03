@@ -110,9 +110,15 @@ export function CommandInput() {
       setInput('')
     } else {
       // All params collected - navigate to target page
-      const queryParams = new URLSearchParams(newParams).toString()
-      const targetPath = `/${companyId}${state.selectedCommand.targetPath}${queryParams ? `?${queryParams}` : ''}`
-      navigate(targetPath)
+      const [basePath, existingQuery] =
+        state.selectedCommand.targetPath.split('?')
+      const existingParams = new URLSearchParams(existingQuery || '')
+      const mergedParams = new URLSearchParams({
+        ...Object.fromEntries(existingParams),
+        ...newParams,
+      })
+      const finalPath = `/${companyId}${basePath}?${mergedParams.toString()}`
+      navigate(finalPath)
 
       // Reset state
       resetToCommandSelection()

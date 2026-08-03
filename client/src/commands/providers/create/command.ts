@@ -5,7 +5,7 @@ export const createProviderCommand: CommandDefinition = {
   name: '/crear-proveedor',
   description: 'Crear un nuevo proveedor',
   icon: '🏢',
-  targetPath: '/providers/create',
+  targetPath: '/accountancy/providers?modal=provider&type=create',
   parameters: [
     {
       name: 'providerType',
