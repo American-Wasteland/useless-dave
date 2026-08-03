@@ -46,13 +46,27 @@ export function findCommand(input: string): CommandDefinition | undefined {
   )
 }
 
-export function searchCommands(input: string): CommandDefinition[] {
-  if (!input || input === '/') return COMMANDS
+function removeAccents(str: string): string {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
 
-  const normalized = input.toLowerCase().trim()
-  return COMMANDS.filter(
-    (cmd) =>
-      cmd.name.toLowerCase().includes(normalized) ||
-      cmd.description.toLowerCase().includes(normalized),
+export function searchCommands(input: string): CommandDefinition[] {
+  const allCommands = !input || input === '/' ? COMMANDS : null
+
+  if (allCommands) {
+    return [...allCommands].sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  // Remove leading "/" and normalize for search (lowercase + no accents)
+  const normalized = removeAccents(
+    input.toLowerCase().trim().replace(/^\//, ''),
   )
+
+  return COMMANDS.filter((cmd) => {
+    const nameMatch = removeAccents(cmd.name.toLowerCase()).includes(normalized)
+    const descMatch = removeAccents(cmd.description.toLowerCase()).includes(
+      normalized,
+    )
+    return nameMatch || descMatch
+  }).sort((a, b) => a.name.localeCompare(b.name))
 }
