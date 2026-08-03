@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ListCategoriesPage } from './commands/accounting-categories'
+import { ListBankAccountsPage } from './commands/bank-accounts/list/ListPage'
 import { ListCostCentersPage } from './commands/cost-centers'
 import { ListProvidersPage } from './commands/providers'
 import { ChatLayout } from './components/layout'
@@ -50,6 +51,10 @@ function App() {
             <Route
               path="accountancy/categories"
               element={<ListCategoriesPage />}
+            />
+            <Route
+              path="accountancy/bank-accounts"
+              element={<ListBankAccountsPage />}
             />
             <Route
               path="accountancy/cost-centers"

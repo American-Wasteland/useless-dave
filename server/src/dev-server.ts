@@ -2,6 +2,7 @@ import 'dotenv/config'
 import cors from 'cors'
 import express from 'express'
 import { registerAccountingCategoryRoutes } from './commands/accounting-categories/routes.js'
+import { registerBankAccountRoutes } from './commands/bank-accounts/routes.js'
 import { registerCostCenterRoutes } from './commands/cost-centers/routes.js'
 import { registerProviderRoutes } from './commands/providers/routes.js'
 import { db, storage } from './lib/db.js'
@@ -16,6 +17,7 @@ const router = express.Router()
 
 // Register command routes
 registerAccountingCategoryRoutes(router, db)
+registerBankAccountRoutes(router, db, storage)
 registerCostCenterRoutes(router, db)
 registerProviderRoutes(router, db, storage)
 
@@ -32,6 +34,18 @@ app.listen(PORT, () => {
   console.log(
     '   GET    /api/companies/:companyId/accounting-categories/search/:query',
   )
+  console.log('   GET    /api/companies/:companyId/bank-accounts')
+  console.log('   POST   /api/companies/:companyId/bank-accounts')
+  console.log('   GET    /api/companies/:companyId/bank-accounts/:id')
+  console.log('   PATCH  /api/companies/:companyId/bank-accounts/:id')
+  console.log('   DELETE /api/companies/:companyId/bank-accounts/:id')
+  console.log(
+    '   POST   /api/companies/:companyId/bank-accounts/:id/statements',
+  )
+  console.log(
+    '   DELETE /api/companies/:companyId/bank-accounts/:id/statements/:month',
+  )
+  console.log('   GET    /api/companies/:companyId/bank-accounts/search/:query')
   console.log('   GET    /api/companies/:companyId/cost-centers')
   console.log('   POST   /api/companies/:companyId/cost-centers')
   console.log('   GET    /api/companies/:companyId/cost-centers/:id')

@@ -275,6 +275,17 @@ All modals use a **centralized query parameter system** for consistency:
 - All delete actions must use `ConfirmModal` (never native `confirm()`)
 - Base color: `text-gray-400` (neutral when not hovered)
 
+**Modal Patterns**:
+- **Error Handling**: All create/update modals must have error state and display
+  - Error state: `const [error, setError] = useState<string | null>(null)`
+  - Error UI: Red box with border at top of form
+  - Clear error before submission: `setError(null)`
+  - Never use `alert()` for errors - always use error state
+- **Pre-fill from Query Params**: Use `useEffect` to read URL params from commands
+  - Example: `/crear-proveedor` command passes `name`, `nit`, etc. as query params
+  - Modal reads params and pre-fills form fields
+- **Loading States**: Show spinner for data fetching, disable buttons during submission
+
 **Example**:
 ```tsx
 // Good: Clickable table row with stretched link pattern
@@ -339,6 +350,83 @@ const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | 
 
 // Good: Back button
 <Button onClick={() => navigate(-1)}>Volver</Button>
+
+// Good: Create modal with error handling and pre-fill
+export function EntityCreateModal() {
+  const navigate = useNavigate()
+  const companyId = useCompanyId()
+  const [searchParams] = useSearchParams()
+  const { createEntity } = useEntities()
+
+  const [name, setName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Pre-fill from query params (passed by command palette)
+  useEffect(() => {
+    const nameParam = searchParams.get('name')
+    if (nameParam) {
+      setName(nameParam)
+    }
+  }, [searchParams])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!name.trim()) {
+      setError('El nombre es requerido')
+      return
+    }
+
+    setError(null) // Clear error before submission
+    setIsSubmitting(true)
+    try {
+      await createEntity({ name: name.trim() })
+      navigate(`/${companyId}/entities`)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Error al crear entidad'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <SlidePanel title="Crear entidad">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Error display - red box at top */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        <Input
+          label="Nombre"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="ej: Mi Entidad"
+          required
+          autoFocus
+        />
+
+        <div className="flex gap-3 pt-4">
+          <Button type="submit" isLoading={isSubmitting}>
+            Crear
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate(-1)}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </form>
+    </SlidePanel>
+  )
+}
 ```
 
 ## Multi-Company Architecture

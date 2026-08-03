@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom'
+import { BankAccountModalManager } from '../../features/bank-accounts/BankAccountModalManager'
 import { CategoryModalManager } from '../../features/categories/CategoryModalManager'
 import { CostCenterModalManager } from '../../features/cost-centers/CostCenterModalManager'
 import { ProviderModalManager } from '../../features/providers'
@@ -24,6 +25,8 @@ export function ModalManager() {
       return <CategoryModalManager />
     case 'costCenter':
       return <CostCenterModalManager />
+    case 'bankAccount':
+      return <BankAccountModalManager />
     default:
       return null
   }
