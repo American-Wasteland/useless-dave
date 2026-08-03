@@ -1,4 +1,4 @@
-import { Building2, Settings, User } from 'lucide-react'
+import { Building2, Home, Settings, User } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import daveEmblem from '/dave-emblem.svg'
@@ -82,6 +82,13 @@ export function ChatLayout() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            to={`/${companyId}`}
+            className="p-2 rounded-xl hover:bg-muted transition-colors"
+            title="Inicio"
+          >
+            <Home className="w-5 h-5 text-muted-foreground" />
+          </Link>
           <button
             type="button"
             className="p-2 rounded-xl hover:bg-muted transition-colors"
