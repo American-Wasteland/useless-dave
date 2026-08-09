@@ -5,7 +5,6 @@ import { useCostCenters } from '../../hooks/useCostCenters'
 import { formatDateInput } from '../../lib/utils'
 import type { ExpenseFormData } from '../../types'
 import { useAuth } from '../auth'
-import { ProviderModal } from '../providers/ProviderModal'
 import { useProviders } from '../providers/useProviders'
 import { createExpense } from './expenseService'
 
@@ -13,11 +12,10 @@ export function ExpenseForm() {
   const navigate = useNavigate()
   const { companyId } = useParams<{ companyId: string }>()
   const { user } = useAuth()
-  const { providers, refetch: refetchProviders } = useProviders()
+  const { providers } = useProviders()
   const { costCenters } = useCostCenters()
 
   const [isLoading, setIsLoading] = useState(false)
-  const [showProviderModal, setShowProviderModal] = useState(false)
   const [formData, setFormData] = useState<ExpenseFormData>({
     providerId: '',
     totalAmount: 0,
@@ -60,41 +58,23 @@ export function ExpenseForm() {
     }
   }
 
-  const handleProviderCreated = () => {
-    refetchProviders()
-    setShowProviderModal(false)
-  }
-
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Nuevo Gasto</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="card p-6 space-y-4">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Select
-                id="provider"
-                label="Proveedor"
-                value={formData.providerId}
-                onChange={(e) =>
-                  setFormData({ ...formData, providerId: e.target.value })
-                }
-                options={providers.map((p) => ({ value: p.id, label: p.name }))}
-                placeholder="Seleccionar proveedor"
-                error={errors.providerId}
-              />
-            </div>
-            <div className="pt-6">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowProviderModal(true)}
-              >
-                + Nuevo
-              </Button>
-            </div>
-          </div>
+          <Select
+            id="provider"
+            label="Proveedor"
+            value={formData.providerId}
+            onChange={(e) =>
+              setFormData({ ...formData, providerId: e.target.value })
+            }
+            options={providers.map((p) => ({ value: p.id, label: p.name }))}
+            placeholder="Seleccionar proveedor"
+            error={errors.providerId}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -174,12 +154,6 @@ export function ExpenseForm() {
           </Link>
         </div>
       </form>
-
-      <ProviderModal
-        isOpen={showProviderModal}
-        onClose={() => setShowProviderModal(false)}
-        onSuccess={handleProviderCreated}
-      />
     </div>
   )
 }

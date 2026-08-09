@@ -1,27 +1,29 @@
-import { useQuery } from '@tanstack/react-query'
-import { Download, FileText, Trash2, Upload } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  ArrowLeft,
+  Download,
+  FileText,
+  Pencil,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Button, ConfirmModal, SlidePanel } from '../../components/ui'
-import { useAuth } from '../../features/auth/AuthContext'
+import { Link, useParams } from 'react-router-dom'
+import { Button, ConfirmModal } from '../../../components/ui'
+import { useAuth } from '../../../features/auth/AuthContext'
 import {
   bankAccountKeys,
   getBankAccount,
   useBankAccounts,
-} from '../../hooks/useBankAccounts'
-import { useCompanyId } from '../../hooks/useCompanyId'
+} from '../../../hooks/useBankAccounts'
+import { useCompanyId } from '../../../hooks/useCompanyId'
 
-interface Props {
-  accountId: string
-}
-
-export function BankAccountViewModal({ accountId }: Props) {
-  const navigate = useNavigate()
+export function BankAccountViewPage() {
+  const { accountId } = useParams<{ accountId: string }>()
   const companyId = useCompanyId()
   const { user } = useAuth()
-  const [searchParams] = useSearchParams()
-  const { uploadStatement, deleteStatement, isUploadingStatement } =
-    useBankAccounts()
+  const queryClient = useQueryClient()
+  const { uploadStatement, deleteStatement } = useBankAccounts()
 
   const [selectedMonth, setSelectedMonth] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -30,8 +32,8 @@ export function BankAccountViewModal({ accountId }: Props) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const { data: account, isLoading } = useQuery({
-    queryKey: bankAccountKeys.detail(companyId || '', accountId),
-    queryFn: () => getBankAccount(companyId!, accountId),
+    queryKey: bankAccountKeys.detail(companyId || '', accountId || ''),
+    queryFn: () => getBankAccount(companyId!, accountId!),
     enabled: !!companyId && !!accountId,
   })
 
@@ -46,7 +48,7 @@ export function BankAccountViewModal({ accountId }: Props) {
   }
 
   const handleUpload = async () => {
-    if (!selectedMonth || !selectedFile || !user) {
+    if (!selectedMonth || !selectedFile || !user || !accountId) {
       alert('Selecciona un mes y un archivo')
       return
     }
@@ -56,11 +58,13 @@ export function BankAccountViewModal({ accountId }: Props) {
       await uploadStatement(accountId, selectedMonth, selectedFile, user.id)
       setSelectedMonth('')
       setSelectedFile(null)
-      // Reset file input
       const fileInput = document.getElementById(
         'statement-file',
       ) as HTMLInputElement
       if (fileInput) fileInput.value = ''
+      queryClient.invalidateQueries({
+        queryKey: bankAccountKeys.detail(companyId || '', accountId),
+      })
     } catch (err) {
       alert(
         err instanceof Error ? err.message : 'Error al subir extracto bancario',
@@ -70,16 +74,15 @@ export function BankAccountViewModal({ accountId }: Props) {
     }
   }
 
-  const handleDeleteClick = (month: string) => {
-    setDeleteConfirm(month)
-  }
-
   const handleDeleteConfirm = async () => {
-    if (!deleteConfirm) return
+    if (!deleteConfirm || !accountId) return
     setIsDeleting(true)
     try {
       await deleteStatement(accountId, deleteConfirm)
       setDeleteConfirm(null)
+      queryClient.invalidateQueries({
+        queryKey: bankAccountKeys.detail(companyId || '', accountId),
+      })
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error al eliminar extracto')
     } finally {
@@ -87,29 +90,21 @@ export function BankAccountViewModal({ accountId }: Props) {
     }
   }
 
-  const editUrl = (() => {
-    const params = new URLSearchParams(searchParams)
-    params.set('mode', 'update')
-    return `?${params.toString()}`
-  })()
-
   if (isLoading) {
     return (
-      <SlidePanel title="Detalle de cuenta bancaria">
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-        </div>
-      </SlidePanel>
+      <div className="flex items-center justify-center h-64">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+      </div>
     )
   }
 
   if (!account) {
     return (
-      <SlidePanel title="Detalle de cuenta bancaria">
-        <div className="text-center py-12 text-gray-500">
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">
           Cuenta bancaria no encontrada
         </div>
-      </SlidePanel>
+      </div>
     )
   }
 
@@ -117,7 +112,6 @@ export function BankAccountViewModal({ accountId }: Props) {
 
   return (
     <>
-      {/* Delete confirmation */}
       <ConfirmModal
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
@@ -130,14 +124,29 @@ export function BankAccountViewModal({ accountId }: Props) {
         isLoading={isDeleting}
       />
 
-      <SlidePanel title="Detalle de cuenta bancaria">
-        <div className="space-y-6">
-          {/* Account Info */}
+      <div className="max-w-3xl mx-auto p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <Link
+            to={`/${companyId}/accountancy/bank-accounts`}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </Link>
+          <Link
+            to={`/${companyId}/accountancy/bank-accounts/${accountId}/edit`}
+          >
+            <Button variant="secondary">
+              <Pencil className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+          </Link>
+        </div>
+
+        <div className="card p-6 space-y-6">
+          {/* Account name */}
           <div>
-            <div className="text-xs text-gray-500 font-medium normal-case mb-1">
-              Nombre
-            </div>
-            <div className="text-sm text-gray-900">{account.name}</div>
+            <h1 className="text-2xl font-bold text-gray-900">{account.name}</h1>
           </div>
 
           {/* Upload Statement */}
@@ -187,19 +196,17 @@ export function BankAccountViewModal({ accountId }: Props) {
 
               <Button
                 onClick={handleUpload}
-                disabled={
-                  !selectedMonth || !selectedFile || isUploadingStatement
-                }
+                disabled={!selectedMonth || !selectedFile}
                 isLoading={isUploading}
                 size="sm"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Subir Extracto
+                Subir extracto
               </Button>
             </div>
           </div>
 
-          {/* Statements List */}
+          {/* Statements list */}
           <div className="border-t pt-6">
             <h3 className="text-sm font-medium text-gray-900 mb-4 flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -233,14 +240,14 @@ export function BankAccountViewModal({ accountId }: Props) {
                         href={statement.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        className="inline-flex items-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Descargar"
                       >
                         <Download className="h-4 w-4" />
                       </a>
                       <button
                         type="button"
-                        onClick={() => handleDeleteClick(statement.month)}
+                        onClick={() => setDeleteConfirm(statement.month)}
                         className="inline-flex items-center p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Eliminar"
                       >
@@ -252,18 +259,8 @@ export function BankAccountViewModal({ accountId }: Props) {
               </div>
             )}
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Link to={editUrl}>
-              <Button variant="secondary">Editar</Button>
-            </Link>
-            <Button variant="secondary" onClick={() => navigate(-1)}>
-              Volver
-            </Button>
-          </div>
         </div>
-      </SlidePanel>
+      </div>
     </>
   )
 }

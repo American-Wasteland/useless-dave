@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ConfirmModal } from '../../../components/ui'
@@ -61,12 +61,21 @@ export function ListProvidersPage() {
       />
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {providers.length} proveedor{providers.length !== 1 ? 'es' : ''}{' '}
-            registrado{providers.length !== 1 ? 's' : ''}
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {providers.length} proveedor{providers.length !== 1 ? 'es' : ''}{' '}
+              registrado{providers.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <Link
+            to={`/${companyId}/accountancy/providers/create`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo proveedor
+          </Link>
         </div>
 
         {providers.length === 0 ? (
@@ -120,7 +129,7 @@ export function ListProvidersPage() {
                       </td>
                       <td className="px-6 py-4">
                         <Link
-                          to={`/${companyId}/accountancy/providers?modal=provider&mode=view&id=${provider.id}`}
+                          to={`/${companyId}/accountancy/providers/${provider.id}`}
                           className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
                         >
                           {provider.name}
@@ -156,7 +165,7 @@ export function ListProvidersPage() {
                       <td className="px-6 py-4 relative z-10">
                         <div className="flex items-center justify-center gap-2">
                           <Link
-                            to={`/${companyId}/accountancy/providers?modal=provider&mode=update&id=${provider.id}`}
+                            to={`/${companyId}/accountancy/providers/${provider.id}/edit`}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Editar"
                           >

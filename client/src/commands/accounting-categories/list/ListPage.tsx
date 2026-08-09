@@ -1,11 +1,14 @@
-import { Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ConfirmModal } from '../../../components/ui'
 import { Switch } from '../../../components/ui/Switch'
+import { useCompanyId } from '../../../hooks/useCompanyId'
 import type { AccountingCategory } from '../shared/types'
 import { useListCategories } from './useListCategories'
 
 export function ListCategoriesPage() {
+  const companyId = useCompanyId()
   const { categories, isLoading, updateCategory, deleteCategory } =
     useListCategories()
   const [editingName, setEditingName] = useState<Record<string, string>>({})
@@ -165,14 +168,24 @@ export function ListCategoriesPage() {
       />
 
       <div className="max-w-6xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Categorías Contables
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {categories.length} categoría{categories.length !== 1 ? 's' : ''}{' '}
-            registrada{categories.length !== 1 ? 's' : ''}
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Categorías contables
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {categories.length} categoría
+              {categories.length !== 1 ? 's' : ''} registrada
+              {categories.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <Link
+            to={`/${companyId}/accountancy/categories/create`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Nueva categoría
+          </Link>
         </div>
 
         {categories.length === 0 ? (

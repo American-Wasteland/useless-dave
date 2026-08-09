@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ConfirmModal } from '../../../components/ui'
@@ -72,12 +72,23 @@ export function ListCostCentersPage() {
       />
 
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Centros de Costo</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {costCenters.length} centro{costCenters.length !== 1 ? 's' : ''} de
-            costo registrado{costCenters.length !== 1 ? 's' : ''}
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Centros de costo
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {costCenters.length} centro{costCenters.length !== 1 ? 's' : ''}{' '}
+              de costo registrado{costCenters.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <Link
+            to={`/${companyId}/accountancy/cost-centers/create`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo centro de costo
+          </Link>
         </div>
 
         {costCenters.length === 0 ? (
@@ -120,7 +131,7 @@ export function ListCostCentersPage() {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
-                        to={`/${companyId}/accountancy/cost-centers?modal=costCenter&mode=view&id=${costCenter.id}`}
+                        to={`/${companyId}/accountancy/cost-centers/${costCenter.id}/edit`}
                         className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
                       >
                         {costCenter.name}
@@ -143,7 +154,7 @@ export function ListCostCentersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm relative z-10">
                       <Link
-                        to={`/${companyId}/accountancy/cost-centers?modal=costCenter&mode=update&id=${costCenter.id}`}
+                        to={`/${companyId}/accountancy/cost-centers/${costCenter.id}/edit`}
                         className="inline-flex items-center p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors mr-1"
                         title="Editar"
                       >

@@ -152,7 +152,7 @@ export function ChatLayout() {
       </header>
 
       {/* Main content - Chat */}
-      <main className="relative z-10 h-[calc(100vh-76px)]">
+      <main className="relative z-10 h-[calc(100vh-76px)] overflow-y-auto">
         <Outlet />
       </main>
     </div>

@@ -5,14 +5,6 @@ export const findBankAccountCommand: CommandDefinition = {
   name: '/buscar-cuenta-bancaria',
   description: 'Buscar una cuenta bancaria',
   icon: '🔍',
-  targetPath: '/accountancy/bank-accounts?modal=bankAccount&mode=find',
-  parameters: [
-    {
-      name: 'query',
-      label: 'Nombre de la cuenta',
-      type: 'text',
-      required: true,
-      placeholder: 'ej: Bancolombia',
-    },
-  ],
+  targetPath: '/accountancy/bank-accounts',
+  parameters: [],
 }

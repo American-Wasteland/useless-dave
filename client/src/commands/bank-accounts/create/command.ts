@@ -5,14 +5,6 @@ export const createBankAccountCommand: CommandDefinition = {
   name: '/crear-cuenta-bancaria',
   description: 'Crear una nueva cuenta bancaria',
   icon: '🏦',
-  targetPath: '/accountancy/bank-accounts?modal=bankAccount&mode=create',
-  parameters: [
-    {
-      name: 'name',
-      label: 'Nombre de la cuenta',
-      type: 'text',
-      required: true,
-      placeholder: 'ej: Bancolombia Ahorros',
-    },
-  ],
+  targetPath: '/accountancy/bank-accounts/create',
+  parameters: [],
 }
