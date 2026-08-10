@@ -231,6 +231,30 @@ export const COMMANDS: CommandDefinition[] = [
 
 That's it. `CommandInput` navigates directly to `targetPath` with no intermediate steps.
 
+### Search Commands (`queryMode`)
+
+For commands that need a search query before navigating, add `queryMode` to the definition:
+
+```typescript
+{
+  id: 'find-provider',
+  name: '/buscar-proveedor',
+  targetPath: '/accountancy/providers?focus=search',
+  queryMode: {
+    placeholder: 'Nombre, NIT o contacto del proveedor',
+  },
+  // ...
+}
+```
+
+**Behaviour**: clicking the command fills the input with the command name and shows a prompt in the dropdown asking for a query. On Enter, navigates to `targetPath&q=<query>`.
+
+The target list page must read `?q` on mount and initialize the search field with it:
+```typescript
+const [query, setQuery] = useState(searchParams.get('q') ?? '')
+const focusSearch = searchParams.get('focus') === 'search' || !!searchParams.get('q')
+```
+
 ## Entity Routes
 
 Each entity has dedicated pages — no modals or slide panels.
@@ -254,12 +278,29 @@ Multi-field create/edit pages use a step wizard:
 const [searchParams, setSearchParams] = useSearchParams()
 const step = Number(searchParams.get('step') ?? '0')
 
-const goToStep = (n: number) => {
-  setSearchParams({ step: String(n) }, { replace: false })
+const goTo = (n: number) => {
+  setSearchParams({ step: String(n) }, { replace: true })
+  setError(null)
 }
 ```
 
 Edit mode: mount the wizard only after the entity query resolves, so `initialData` is always fully populated.
+
+#### Step indicator clickability
+
+- **Completed steps** (`i < step`): always clickable in both modes
+- **Current step** (`i === step`): never clickable
+- **Future steps** (`i > step`): clickable only in **edit mode**, not in create mode
+
+#### Navigation bar layout
+
+```
+[Cancelar]  ·····flex-1·····  [Atrás][Continuar / Submit]
+```
+
+- **Cancelar** — always visible on the far left, calls `navigate(-1)`
+- **Atrás** — right side, shown only when `step > 0`
+- **Continuar / Submit** — rightmost, always visible
 
 ### List Page Pattern
 
