@@ -68,7 +68,6 @@ export interface Client extends ThirdParty {}
 // Cost Center types - re-exported from shared package
 export type {
   CostCenter,
-  CostCenterStatus,
   CostCenterType,
 } from '@useless-dave/shared'
 

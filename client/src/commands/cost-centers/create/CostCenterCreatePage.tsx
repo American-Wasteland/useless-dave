@@ -11,11 +11,7 @@ export function CostCenterCreatePage() {
   const { createCostCenter, isCreating } = useCostCenters()
 
   const handleSubmit = async (data: CostCenterWizardData) => {
-    await createCostCenter({
-      type: data.type,
-      name: data.name.trim(),
-      description: data.description.trim() || undefined,
-    })
+    await createCostCenter({ type: data.type, name: data.name.trim() })
     navigate(`/${companyId}/accountancy/cost-centers`)
   }
 

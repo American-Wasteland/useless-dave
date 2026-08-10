@@ -11,10 +11,7 @@ export function CategoryCreatePage() {
   const { createCategory, isCreating } = useCreateCategory()
 
   const handleSubmit = async (data: CategoryWizardData) => {
-    await createCategory({
-      name: data.name.trim(),
-      description: data.description.trim() || undefined,
-    })
+    await createCategory({ name: data.name.trim() })
     navigate(`/${companyId}/accountancy/categories`)
   }
 

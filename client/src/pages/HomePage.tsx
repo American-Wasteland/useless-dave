@@ -16,8 +16,8 @@ export function HomePage() {
   const company = companies.find((c) => c.id === companyId)
   const { expenses } = useExpenses()
 
-  const pendingExpenses = expenses.filter((e) => e.status === 'pending')
-  const partialExpenses = expenses.filter((e) => e.status === 'partial')
+  const pendingExpenses = expenses.filter((e) => e.paymentStatus === 'pending')
+  const partialExpenses = expenses.filter((e) => e.paymentStatus === 'partial')
   const totalPending = [...pendingExpenses, ...partialExpenses].reduce(
     (sum, e) => sum + e.totalAmount,
     0,
@@ -84,7 +84,7 @@ export function HomePage() {
             <div>
               <p className="text-sm text-gray-500">Pagados</p>
               <p className="text-2xl font-bold text-gray-900">
-                {expenses.filter((e) => e.status === 'paid').length}
+                {expenses.filter((e) => e.paymentStatus === 'paid').length}
               </p>
             </div>
           </div>

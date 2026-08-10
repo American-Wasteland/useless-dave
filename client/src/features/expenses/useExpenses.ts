@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCompanyId } from '../../hooks/useCompanyId'
-import type { Expense, ExpenseFormData } from '../../types'
-import { getProvider } from '../providers/providerService'
+import type { ExpenseFormData } from '../../types'
 import { createExpense, deleteExpense, getExpenses } from './expenseService'
 
 export const expenseKeys = {
@@ -13,31 +12,12 @@ export const expenseKeys = {
     [...expenseKeys.details(), companyId, id] as const,
 }
 
-async function fetchExpensesWithProviders(
-  companyId: string,
-): Promise<Expense[]> {
-  const expenses = await getExpenses(companyId)
-
-  const enriched = await Promise.all(
-    expenses.map(async (expense) => {
-      try {
-        const provider = await getProvider(companyId, expense.providerId)
-        return { ...expense, provider: provider || undefined }
-      } catch {
-        return expense
-      }
-    }),
-  )
-
-  return enriched
-}
-
 export function useExpenses() {
   const companyId = useCompanyId()
 
   const query = useQuery({
     queryKey: expenseKeys.list(companyId || ''),
-    queryFn: () => fetchExpensesWithProviders(companyId!),
+    queryFn: () => getExpenses(companyId!),
     enabled: !!companyId,
   })
 

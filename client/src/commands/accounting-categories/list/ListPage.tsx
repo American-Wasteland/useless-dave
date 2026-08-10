@@ -12,9 +12,6 @@ export function ListCategoriesPage() {
   const { categories, isLoading, updateCategory, deleteCategory } =
     useListCategories()
   const [editingName, setEditingName] = useState<Record<string, string>>({})
-  const [editingDescription, setEditingDescription] = useState<
-    Record<string, string>
-  >({})
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string
     name: string
@@ -39,10 +36,7 @@ export function ListCategoriesPage() {
     try {
       await updateCategory({
         categoryId: category.id,
-        data: {
-          name: newName.trim(),
-          description: category.description || '',
-        },
+        data: { name: newName.trim() },
       })
       setEditingName((prev) => {
         const next = { ...prev }
@@ -54,47 +48,6 @@ export function ListCategoriesPage() {
         err instanceof Error ? err.message : 'Error al actualizar categoría',
       )
       setEditingName((prev) => {
-        const next = { ...prev }
-        delete next[category.id]
-        return next
-      })
-    }
-  }
-
-  const handleDescriptionBlur = async (category: AccountingCategory) => {
-    const newDescription = editingDescription[category.id]
-    if (newDescription === undefined) {
-      return
-    }
-
-    const currentDescription = category.description || ''
-    if (newDescription === currentDescription) {
-      setEditingDescription((prev) => {
-        const next = { ...prev }
-        delete next[category.id]
-        return next
-      })
-      return
-    }
-
-    try {
-      await updateCategory({
-        categoryId: category.id,
-        data: {
-          name: category.name,
-          description: newDescription.trim(),
-        },
-      })
-      setEditingDescription((prev) => {
-        const next = { ...prev }
-        delete next[category.id]
-        return next
-      })
-    } catch (err) {
-      alert(
-        err instanceof Error ? err.message : 'Error al actualizar categoría',
-      )
-      setEditingDescription((prev) => {
         const next = { ...prev }
         delete next[category.id]
         return next
@@ -176,9 +129,6 @@ export function ListCategoriesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nombre
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Descripción
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
@@ -208,30 +158,6 @@ export function ListCategoriesPage() {
                         }
                       }}
                       className="w-full px-2 py-1 text-sm font-medium text-gray-900 border border-transparent rounded hover:border-gray-300 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none transition-colors"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <input
-                      type="text"
-                      value={
-                        editingDescription[category.id] !== undefined
-                          ? editingDescription[category.id]
-                          : category.description || ''
-                      }
-                      onChange={(e) =>
-                        setEditingDescription((prev) => ({
-                          ...prev,
-                          [category.id]: e.target.value,
-                        }))
-                      }
-                      onBlur={() => handleDescriptionBlur(category)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.currentTarget.blur()
-                        }
-                      }}
-                      placeholder="Descripción (opcional)"
-                      className="w-full px-2 py-1 text-sm text-gray-500 border border-transparent rounded hover:border-gray-300 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none transition-colors"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">

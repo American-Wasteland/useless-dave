@@ -39,7 +39,7 @@ export async function createProvider(
 ): Promise<DocumentReference> {
   const provider = {
     name: data.name,
-    rut: data.rut,
+    documentNumber: data.documentNumber,
     address: data.address || null,
     email: data.email || null,
     phone: data.phone || null,

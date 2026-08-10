@@ -6,15 +6,12 @@ import type { Entity } from './common.js'
  */
 export interface AccountingCategory extends Entity {
   name: string
-  description?: string
 }
 
 export interface CreateAccountingCategoryInput {
   name: string
-  description?: string
 }
 
 export interface UpdateAccountingCategoryInput {
   name?: string
-  description?: string
 }

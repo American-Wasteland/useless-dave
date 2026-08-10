@@ -27,7 +27,6 @@ export function CostCenterEditPage() {
     await updateCostCenter(costCenterId, {
       type: data.type,
       name: data.name.trim(),
-      description: data.description.trim() || undefined,
     })
     navigate(`/${companyId}/accountancy/cost-centers`)
   }
@@ -57,7 +56,6 @@ export function CostCenterEditPage() {
         initialData={{
           type: costCenter.type,
           name: costCenter.name,
-          description: costCenter.description ?? '',
         }}
         onSubmit={handleSubmit}
         isSubmitting={isUpdating}

@@ -23,13 +23,6 @@ export function StepDetails({ data, onChange }: StepDetailsProps) {
         placeholder="ej: Proyecto Sede Norte"
         autoFocus
       />
-      <Input
-        id="description"
-        label="Descripción (opcional)"
-        value={data.description}
-        onChange={(e) => onChange({ description: e.target.value })}
-        placeholder="ej: Construcción de nueva sede"
-      />
     </div>
   )
 }

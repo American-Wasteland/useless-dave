@@ -53,7 +53,6 @@ export class AccountingCategoryService {
 
     const docRef = await this.collection.add({
       name: data.name,
-      description: data.description || null,
       createdAt: new Date(),
     })
     const doc = await docRef.get()
@@ -108,10 +107,6 @@ export class AccountingCategoryService {
   async search(query: string): Promise<AccountingCategory[]> {
     const all = await this.getAll()
     const normalized = query.toLowerCase().trim()
-    return all.filter(
-      (cat) =>
-        cat.name.toLowerCase().includes(normalized) ||
-        cat.description?.toLowerCase().includes(normalized),
-    )
+    return all.filter((cat) => cat.name.toLowerCase().includes(normalized))
   }
 }

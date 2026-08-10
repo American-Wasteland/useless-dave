@@ -10,7 +10,6 @@ import { StepType } from './steps/StepType'
 export interface CostCenterWizardData {
   type: CostCenterType
   name: string
-  description: string
 }
 
 type Action = { type: 'update'; payload: Partial<CostCenterWizardData> }
@@ -54,7 +53,6 @@ export function CostCenterWizard({
   const [data, dispatch] = useReducer(reducer, {
     type: 'project',
     name: '',
-    description: '',
     ...initialData,
   })
 
@@ -159,9 +157,7 @@ export function CostCenterWizard({
         {step === 0 && (
           <StepType value={data.type} onChange={(v) => update({ type: v })} />
         )}
-        {step === 1 && (
-          <StepDetails data={data} onChange={update} mode={mode} />
-        )}
+        {step === 1 && <StepDetails data={data} onChange={update} />}
       </div>
 
       {/* Navigation */}

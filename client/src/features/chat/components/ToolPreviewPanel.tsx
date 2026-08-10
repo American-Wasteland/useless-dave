@@ -1,4 +1,4 @@
-import { Building2, FolderKanban, Receipt, Tag, X } from 'lucide-react'
+import { Building2, Check, FolderKanban, Receipt, Tag, X } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 import type { ChatToolCall } from '../../../types'
 

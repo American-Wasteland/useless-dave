@@ -8,18 +8,15 @@ export type CostCenterType = 'project' | 'operation'
  */
 export interface CostCenter extends Entity {
   name: string
-  description?: string
   type: CostCenterType
 }
 
 export interface CreateCostCenterInput {
   name: string
-  description?: string
   type: CostCenterType
 }
 
 export interface UpdateCostCenterInput {
   name?: string
-  description?: string
   type?: CostCenterType
 }

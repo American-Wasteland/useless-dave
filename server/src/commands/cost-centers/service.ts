@@ -39,7 +39,6 @@ export class CostCenterService {
   async create(data: CreateCostCenterInput): Promise<CostCenter> {
     const docRef = await this.collection.add({
       name: data.name,
-      description: data.description || null,
       type: data.type,
       createdAt: new Date(),
     })
@@ -75,10 +74,8 @@ export class CostCenterService {
     const all = await this.getAll()
     const normalized = query.toLowerCase().trim()
 
-    return all.filter(
-      (costCenter) =>
-        costCenter.name.toLowerCase().includes(normalized) ||
-        costCenter.description?.toLowerCase().includes(normalized),
+    return all.filter((costCenter) =>
+      costCenter.name.toLowerCase().includes(normalized),
     )
   }
 }

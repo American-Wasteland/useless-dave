@@ -46,7 +46,7 @@ export function registerCostCenterRoutes(router: Router, db: Firestore) {
     '/companies/:companyId/cost-centers',
     async (req: Request, res: Response) => {
       try {
-        const { name, description, type, status } = req.body
+        const { name, type } = req.body
 
         if (!name || !type) {
           res.status(400).json({ error: 'name and type are required' })
@@ -57,12 +57,7 @@ export function registerCostCenterRoutes(router: Router, db: Firestore) {
           db,
           req.params.companyId as string,
         )
-        const costCenter = await service.create({
-          name,
-          description,
-          type,
-          status,
-        })
+        const costCenter = await service.create({ name, type })
 
         res.status(201).json(costCenter)
       } catch (error) {
@@ -76,7 +71,7 @@ export function registerCostCenterRoutes(router: Router, db: Firestore) {
     '/companies/:companyId/cost-centers/:id',
     async (req: Request, res: Response) => {
       try {
-        const { name, description, type, status } = req.body
+        const { name, type } = req.body
 
         const service = new CostCenterService(
           db,
@@ -84,9 +79,7 @@ export function registerCostCenterRoutes(router: Router, db: Firestore) {
         )
         const costCenter = await service.update(req.params.id as string, {
           name,
-          description,
           type,
-          status,
         })
 
         res.json(costCenter)

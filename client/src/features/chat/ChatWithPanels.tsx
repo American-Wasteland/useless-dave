@@ -26,7 +26,12 @@ export function ChatWithPanels() {
         )}
 
         {/* Messages */}
-        <MessageList messages={messages} onQuickAction={sendMessage} />
+        <MessageList
+          messages={messages}
+          onQuickAction={(text) => {
+            sendMessage(text, [])
+          }}
+        />
 
         {/* Input */}
         <div className="px-4 pb-8 pt-4">

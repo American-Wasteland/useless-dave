@@ -2,11 +2,11 @@ import { FileText, Plus } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { formatCOP, formatDate } from '../../lib/utils'
-import type { ExpenseStatus } from '../../types'
+import type { PaymentStatus } from '../../types'
 import { useExpenses } from './useExpenses'
 
 const statusConfig: Record<
-  ExpenseStatus,
+  PaymentStatus,
   { label: string; variant: 'danger' | 'warning' | 'success' }
 > = {
   pending: { label: 'Pendiente', variant: 'danger' },
@@ -81,14 +81,14 @@ export function ExpenseList() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {expenses.map((expense) => {
-                const status = statusConfig[expense.status]
+                const status = statusConfig[expense.paymentStatus]
                 return (
                   <tr key={expense.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(expense.date.toDate())}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {expense.provider?.name || expense.providerId}
+                      {expense.providerId || '—'}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                       {expense.description || '-'}

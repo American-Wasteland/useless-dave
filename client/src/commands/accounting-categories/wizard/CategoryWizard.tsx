@@ -1,9 +1,9 @@
 import { useReducer, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, Input } from '../../../components/ui'
 
 export interface CategoryWizardData {
   name: string
-  description: string
 }
 
 type Action = { type: 'update'; payload: Partial<CategoryWizardData> }
@@ -33,9 +33,9 @@ export function CategoryWizard({
   onSubmit,
   isSubmitting,
 }: CategoryWizardProps) {
+  const navigate = useNavigate()
   const [data, dispatch] = useReducer(reducer, {
     name: '',
-    description: '',
     ...initialData,
   })
 
@@ -83,17 +83,14 @@ export function CategoryWizard({
             placeholder="ej: Insumos médicos"
             autoFocus
           />
-          <Input
-            id="description"
-            label="Descripción (opcional)"
-            value={data.description}
-            onChange={(e) => update({ description: e.target.value })}
-            placeholder="ej: Materiales e insumos para procedimientos"
-          />
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex gap-3">
+        <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          Cancelar
+        </Button>
+        <div className="flex-1" />
         <Button type="button" onClick={handleSubmit} isLoading={isSubmitting}>
           {mode === 'create' ? 'Crear categoría' : 'Actualizar categoría'}
         </Button>

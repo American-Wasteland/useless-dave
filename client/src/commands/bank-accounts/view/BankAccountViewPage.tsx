@@ -49,7 +49,7 @@ export function BankAccountViewPage() {
 
     setIsUploading(true)
     try {
-      await uploadStatement(accountId, selectedMonth, selectedFile, user.id)
+      await uploadStatement(accountId, selectedMonth, selectedFile, user.uid)
       setSelectedMonth('')
       setSelectedFile(null)
       const fileInput = document.getElementById(

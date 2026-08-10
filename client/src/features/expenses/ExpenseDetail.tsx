@@ -3,14 +3,14 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge, Button } from '../../components/ui'
 import { formatCOP, formatDate } from '../../lib/utils'
-import type { ExpenseStatus } from '../../types'
+import type { PaymentStatus } from '../../types'
 import { deleteExpense } from './expenseService'
 import { PaymentForm } from './PaymentForm'
 import { useExpense } from './useExpense'
 import { usePayments } from './usePayments'
 
 const statusConfig: Record<
-  ExpenseStatus,
+  PaymentStatus,
   { label: string; variant: 'danger' | 'warning' | 'success' }
 > = {
   pending: { label: 'Pendiente', variant: 'danger' },
@@ -74,7 +74,7 @@ export function ExpenseDetail() {
     )
   }
 
-  const status = statusConfig[expense.status]
+  const status = statusConfig[expense.paymentStatus]
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0)
   const remaining = expense.totalAmount - totalPaid
 
@@ -103,7 +103,7 @@ export function ExpenseDetail() {
             <div>
               <dt className="text-sm text-gray-500">Proveedor</dt>
               <dd className="text-sm font-medium text-gray-900">
-                {expense.provider?.name || expense.providerId}
+                {expense.providerId || '—'}
               </dd>
             </div>
             <div>
@@ -121,13 +121,17 @@ export function ExpenseDetail() {
             <div>
               <dt className="text-sm text-gray-500">Retenciones</dt>
               <dd className="text-sm font-medium text-gray-900">
-                {formatCOP(expense.taxDeductions)}
+                {formatCOP(
+                  expense.retentions.retefuente +
+                    expense.retentions.reteIva +
+                    expense.retentions.reteIca,
+                )}
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Centro de Costo</dt>
               <dd className="text-sm font-medium text-gray-900">
-                {expense.costCenter?.name || expense.costCenterId}
+                {expense.costCenterId || '—'}
               </dd>
             </div>
             <div>
@@ -138,16 +142,16 @@ export function ExpenseDetail() {
             </div>
           </dl>
 
-          {expense.invoiceUrl && (
+          {expense.documents.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-200">
               <a
-                href={expense.invoiceUrl}
+                href={expense.documents[0].url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700"
               >
                 <ExternalLink className="h-4 w-4" />
-                Ver Factura
+                Ver documento
               </a>
             </div>
           )}
@@ -157,7 +161,7 @@ export function ExpenseDetail() {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Pagos</h2>
-            {expense.status !== 'paid' && (
+            {expense.paymentStatus !== 'paid' && (
               <Button size="sm" onClick={() => setShowPaymentForm(true)}>
                 <Plus className="h-4 w-4 mr-1" />
                 Registrar Pago

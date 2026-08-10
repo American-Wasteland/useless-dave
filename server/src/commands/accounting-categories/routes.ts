@@ -49,7 +49,7 @@ export function registerAccountingCategoryRoutes(
     '/companies/:companyId/accounting-categories',
     async (req: Request, res: Response) => {
       try {
-        const { name, description } = req.body
+        const { name } = req.body
         if (!name) {
           res.status(400).json({ error: 'name is required' })
           return
@@ -58,7 +58,7 @@ export function registerAccountingCategoryRoutes(
           db,
           req.params.companyId as string,
         )
-        const category = await service.create({ name, description })
+        const category = await service.create({ name })
         res.status(201).json(category)
       } catch (error) {
         const errorMessage = String(error)
@@ -76,15 +76,12 @@ export function registerAccountingCategoryRoutes(
     '/companies/:companyId/accounting-categories/:id',
     async (req: Request, res: Response) => {
       try {
-        const { name, description } = req.body
+        const { name } = req.body
         const service = new AccountingCategoryService(
           db,
           req.params.companyId as string,
         )
-        const category = await service.update(req.params.id as string, {
-          name,
-          description,
-        })
+        const category = await service.update(req.params.id as string, { name })
         res.json(category)
       } catch (error) {
         const errorMessage = String(error)
