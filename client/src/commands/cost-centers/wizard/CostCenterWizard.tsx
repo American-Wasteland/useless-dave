@@ -1,7 +1,7 @@
 import type { CostCenterType } from '@useless-dave/shared'
 import { Check } from 'lucide-react'
 import { useReducer, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../../../components/ui'
 import { cn } from '../../../lib/utils'
 import { StepDetails } from './steps/StepDetails'
@@ -44,6 +44,7 @@ export function CostCenterWizard({
   onSubmit,
   isSubmitting,
 }: CostCenterWizardProps) {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const step = Math.min(
     Math.max(Number(searchParams.get('step') ?? 0), 0),
@@ -100,28 +101,42 @@ export function CostCenterWizard({
       <nav className="flex items-center">
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <div
-                className={cn(
-                  'h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all',
-                  i < step
-                    ? 'bg-primary text-primary-foreground'
-                    : i === step
-                      ? 'bg-secondary text-secondary-foreground ring-2 ring-secondary ring-offset-2'
-                      : 'bg-muted text-muted-foreground',
-                )}
-              >
-                {i < step ? <Check className="h-4 w-4" /> : i + 1}
-              </div>
-              <span
-                className={cn(
-                  'text-[11px] font-medium whitespace-nowrap hidden sm:block',
-                  i === step ? 'text-foreground' : 'text-muted-foreground',
-                )}
-              >
-                {label}
-              </span>
-            </div>
+            {(() => {
+              const isClickable = i < step || (mode === 'edit' && i > step)
+              return (
+                <button
+                  type="button"
+                  onClick={() => isClickable && goTo(i)}
+                  className={cn(
+                    'flex flex-col items-center gap-1 shrink-0 group',
+                    isClickable ? 'cursor-pointer' : 'cursor-default',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all',
+                      i < step
+                        ? 'bg-primary text-primary-foreground group-hover:opacity-75'
+                        : i === step
+                          ? 'bg-secondary text-secondary-foreground ring-2 ring-secondary ring-offset-2'
+                          : isClickable
+                            ? 'bg-muted text-muted-foreground group-hover:bg-muted/60'
+                            : 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {i < step ? <Check className="h-4 w-4" /> : i + 1}
+                  </div>
+                  <span
+                    className={cn(
+                      'text-[11px] font-medium whitespace-nowrap hidden sm:block',
+                      i === step ? 'text-foreground' : 'text-muted-foreground',
+                    )}
+                  >
+                    {label}
+                  </span>
+                </button>
+              )
+            })()}
             {i < STEPS.length - 1 && (
               <div
                 className={cn(
@@ -151,12 +166,15 @@ export function CostCenterWizard({
 
       {/* Navigation */}
       <div className="flex gap-3">
+        <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          Cancelar
+        </Button>
+        <div className="flex-1" />
         {step > 0 && (
           <Button type="button" variant="outline" onClick={handleBack}>
             Atrás
           </Button>
         )}
-        <div className="flex-1" />
         {isLast ? (
           <Button type="button" onClick={handleSubmit} isLoading={isSubmitting}>
             {mode === 'create'
