@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const findProviderCommand: CommandDefinition = {
@@ -6,5 +7,18 @@ export const findProviderCommand: CommandDefinition = {
   description: 'Buscar un proveedor por nombre o NIT',
   icon: '🔍',
   targetPath: '/accountancy/providers',
+  group: CommandGroup.Providers,
   parameters: [],
+  keywords: [
+    'ver',
+    'listar',
+    'lista',
+    'consultar',
+    'mostrar',
+    'todos',
+    'empresa',
+    'vendedor',
+    'tercero',
+    'contratista',
+  ],
 }

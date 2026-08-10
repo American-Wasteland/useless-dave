@@ -12,6 +12,8 @@ export interface CommandParameter {
   options?: CommandParameterOption[] // For select type
 }
 
+import type { CommandGroupValue } from '@useless-dave/shared'
+
 export interface CommandDefinition {
   id: string
   name: string // Spanish command name shown to user
@@ -19,6 +21,8 @@ export interface CommandDefinition {
   icon: string // Emoji icon
   targetPath: string // Where to navigate after collecting params
   parameters: CommandParameter[]
+  keywords?: string[] // Extra search terms (synonyms, alternate phrasings)
+  group: CommandGroupValue
 }
 
 // Import commands from their packages
@@ -50,23 +54,43 @@ function removeAccents(str: string): string {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
-export function searchCommands(input: string): CommandDefinition[] {
-  const allCommands = !input || input === '/' ? COMMANDS : null
+function normalize(str: string): string {
+  return removeAccents(str.toLowerCase().replace(/^\//, '').replace(/-/g, ' '))
+}
 
-  if (allCommands) {
-    return [...allCommands].sort((a, b) => a.name.localeCompare(b.name))
+function groupSortKey(a: CommandDefinition, b: CommandDefinition): number {
+  const groupCmp = a.group.localeCompare(b.group, 'es')
+  if (groupCmp !== 0) return groupCmp
+  // Within a group: create first, then the rest
+  const aIsCreate = a.name.startsWith('/crear') ? 0 : 1
+  const bIsCreate = b.name.startsWith('/crear') ? 0 : 1
+  return aIsCreate - bIsCreate
+}
+
+export function searchCommands(input: string): CommandDefinition[] {
+  const query = normalize(input.trim())
+
+  // Browse mode: show all commands grouped by entity (alphabetical), create-first within each group
+  if (!query) {
+    return [...COMMANDS].sort(groupSortKey)
   }
 
-  // Remove leading "/" and normalize for search (lowercase + no accents)
-  const normalized = removeAccents(
-    input.toLowerCase().trim().replace(/^\//, ''),
-  )
+  const tokens = query.split(/\s+/).filter(Boolean)
 
-  return COMMANDS.filter((cmd) => {
-    const nameMatch = removeAccents(cmd.name.toLowerCase()).includes(normalized)
-    const descMatch = removeAccents(cmd.description.toLowerCase()).includes(
-      normalized,
-    )
-    return nameMatch || descMatch
-  }).sort((a, b) => a.name.localeCompare(b.name))
+  const scored = COMMANDS.map((cmd) => {
+    const text = [
+      normalize(cmd.name),
+      normalize(cmd.description),
+      ...(cmd.keywords ?? []).map(normalize),
+    ].join(' ')
+
+    const matchCount = tokens.filter((token) => text.includes(token)).length
+    return { cmd, score: matchCount / tokens.length }
+  })
+
+  // Search mode: flat ranked results, no grouping
+  return scored
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(({ cmd }) => cmd)
 }

@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const findAccountingCategoryCommand: CommandDefinition = {
@@ -6,5 +7,18 @@ export const findAccountingCategoryCommand: CommandDefinition = {
   description: 'Buscar categorías contables existentes',
   icon: '🔍',
   targetPath: '/accountancy/categories',
+  group: CommandGroup.AccountingCategories,
   parameters: [],
+  keywords: [
+    'ver',
+    'listar',
+    'lista',
+    'consultar',
+    'mostrar',
+    'todos',
+    'cuenta',
+    'contabilidad',
+    'rubro',
+    'gasto',
+  ],
 }

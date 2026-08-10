@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const findBankAccountCommand: CommandDefinition = {
@@ -7,4 +8,16 @@ export const findBankAccountCommand: CommandDefinition = {
   icon: '🔍',
   targetPath: '/accountancy/bank-accounts',
   parameters: [],
+  group: CommandGroup.BankAccounts,
+  keywords: [
+    'ver',
+    'listar',
+    'lista',
+    'consultar',
+    'mostrar',
+    'todos',
+    'banco',
+    'ahorro',
+    'corriente',
+  ],
 }

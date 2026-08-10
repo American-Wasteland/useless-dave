@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const createBankAccountCommand: CommandDefinition = {
@@ -7,4 +8,16 @@ export const createBankAccountCommand: CommandDefinition = {
   icon: '🏦',
   targetPath: '/accountancy/bank-accounts/create',
   parameters: [],
+  group: CommandGroup.BankAccounts,
+  keywords: [
+    'nuevo',
+    'agregar',
+    'registrar',
+    'banco',
+    'ahorro',
+    'corriente',
+    'bancolombia',
+    'davivienda',
+    'nequi',
+  ],
 }

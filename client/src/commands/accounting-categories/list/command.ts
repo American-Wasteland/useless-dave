@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const listAccountingCategoriesCommand: CommandDefinition = {
@@ -7,4 +8,15 @@ export const listAccountingCategoriesCommand: CommandDefinition = {
   icon: '📋',
   targetPath: '/accountancy/categories',
   parameters: [],
+  group: CommandGroup.AccountingCategories,
+  keywords: [
+    'buscar',
+    'listar',
+    'consultar',
+    'mostrar',
+    'cuenta',
+    'contabilidad',
+    'rubro',
+    'gasto',
+  ],
 }

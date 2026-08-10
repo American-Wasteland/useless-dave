@@ -1,3 +1,4 @@
+import { CommandGroup } from '@useless-dave/shared'
 import type { CommandDefinition } from '../../../features/commands/commandRegistry'
 
 export const createCostCenterCommand: CommandDefinition = {
@@ -7,4 +8,14 @@ export const createCostCenterCommand: CommandDefinition = {
   icon: '📁',
   targetPath: '/accountancy/cost-centers/create',
   parameters: [],
+  group: CommandGroup.CostCenters,
+  keywords: [
+    'nuevo',
+    'agregar',
+    'registrar',
+    'proyecto',
+    'operacion',
+    'departamento',
+    'area',
+  ],
 }
