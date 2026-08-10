@@ -1,4 +1,4 @@
-import type { CostCenterStatus, CostCenterType } from '@useless-dave/shared'
+import type { CostCenterType } from '@useless-dave/shared'
 import { Check } from 'lucide-react'
 import { useReducer, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -11,12 +11,14 @@ export interface CostCenterWizardData {
   type: CostCenterType
   name: string
   description: string
-  status: CostCenterStatus
 }
 
 type Action = { type: 'update'; payload: Partial<CostCenterWizardData> }
 
-function reducer(state: CostCenterWizardData, action: Action): CostCenterWizardData {
+function reducer(
+  state: CostCenterWizardData,
+  action: Action,
+): CostCenterWizardData {
   return { ...state, ...action.payload }
 }
 
@@ -43,13 +45,15 @@ export function CostCenterWizard({
   isSubmitting,
 }: CostCenterWizardProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const step = Math.min(Math.max(Number(searchParams.get('step') ?? 0), 0), STEPS.length - 1)
+  const step = Math.min(
+    Math.max(Number(searchParams.get('step') ?? 0), 0),
+    STEPS.length - 1,
+  )
 
   const [data, dispatch] = useReducer(reducer, {
     type: 'project',
     name: '',
     description: '',
-    status: 'active',
     ...initialData,
   })
 
@@ -65,7 +69,10 @@ export function CostCenterWizard({
 
   const handleNext = () => {
     const err = validate(step, data)
-    if (err) { setError(err); return }
+    if (err) {
+      setError(err)
+      return
+    }
     goTo(step + 1)
   }
 
@@ -73,7 +80,10 @@ export function CostCenterWizard({
 
   const handleSubmit = async () => {
     const err = validate(step, data)
-    if (err) { setError(err); return }
+    if (err) {
+      setError(err)
+      return
+    }
     setError(null)
     try {
       await onSubmit(data)
@@ -114,7 +124,10 @@ export function CostCenterWizard({
             </div>
             {i < STEPS.length - 1 && (
               <div
-                className={cn('h-px flex-1 mx-2 mb-4', i < step ? 'bg-primary' : 'bg-border')}
+                className={cn(
+                  'h-px flex-1 mx-2 mb-4',
+                  i < step ? 'bg-primary' : 'bg-border',
+                )}
               />
             )}
           </div>
@@ -124,7 +137,9 @@ export function CostCenterWizard({
       {/* Step content */}
       <div className="card p-6">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
+            {error}
+          </div>
         )}
         {step === 0 && (
           <StepType value={data.type} onChange={(v) => update({ type: v })} />
@@ -144,7 +159,9 @@ export function CostCenterWizard({
         <div className="flex-1" />
         {isLast ? (
           <Button type="button" onClick={handleSubmit} isLoading={isSubmitting}>
-            {mode === 'create' ? 'Crear centro de costo' : 'Actualizar centro de costo'}
+            {mode === 'create'
+              ? 'Crear centro de costo'
+              : 'Actualizar centro de costo'}
           </Button>
         ) : (
           <Button type="button" onClick={handleNext}>

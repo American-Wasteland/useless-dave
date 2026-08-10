@@ -41,7 +41,6 @@ export class CostCenterService {
       name: data.name,
       description: data.description || null,
       type: data.type,
-      status: data.status || 'active',
       createdAt: new Date(),
     })
 

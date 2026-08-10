@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PageLayout } from '../../../components/layout'
 import { ConfirmModal } from '../../../components/ui'
-import { Switch } from '../../../components/ui/Switch'
 import { useCompanyId } from '../../../hooks/useCompanyId'
 import type { AccountingCategory } from '../shared/types'
 import { useListCategories } from './useListCategories'
@@ -21,25 +20,6 @@ export function ListCategoriesPage() {
     name: string
   } | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const toggleActive = async (category: AccountingCategory) => {
-    try {
-      await updateCategory({
-        categoryId: category.id,
-        data: {
-          name: category.name,
-          description: category.description || '',
-          isActive: !category.isActive,
-        },
-      })
-    } catch (err) {
-      alert(
-        err instanceof Error
-          ? err.message
-          : 'Error al cambiar estado de categoría',
-      )
-    }
-  }
 
   const handleNameBlur = async (category: AccountingCategory) => {
     const newName = editingName[category.id]
@@ -62,7 +42,6 @@ export function ListCategoriesPage() {
         data: {
           name: newName.trim(),
           description: category.description || '',
-          isActive: category.isActive,
         },
       })
       setEditingName((prev) => {
@@ -104,7 +83,6 @@ export function ListCategoriesPage() {
         data: {
           name: category.name,
           description: newDescription.trim(),
-          isActive: category.isActive,
         },
       })
       setEditingDescription((prev) => {
@@ -201,9 +179,6 @@ export function ListCategoriesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Descripción
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
@@ -257,12 +232,6 @@ export function ListCategoriesPage() {
                       }}
                       placeholder="Descripción (opcional)"
                       className="w-full px-2 py-1 text-sm text-gray-500 border border-transparent rounded hover:border-gray-300 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none transition-colors"
-                    />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Switch
-                      checked={category.isActive}
-                      onCheckedChange={() => toggleActive(category)}
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">

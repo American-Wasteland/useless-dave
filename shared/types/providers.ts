@@ -16,7 +16,6 @@ export interface Provider extends Entity {
   address?: string
   rutUrl?: string // Firebase Storage URL for RUT document (PDF)
   bankAccountUrl?: string // Firebase Storage URL for bank account document (PDF)
-  isActive: boolean
 }
 
 export interface CreateProviderInput {
@@ -41,5 +40,4 @@ export interface UpdateProviderInput {
   address?: string
   rutUrl?: string
   bankAccountUrl?: string
-  isActive?: boolean
 }

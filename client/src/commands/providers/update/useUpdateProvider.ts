@@ -30,12 +30,15 @@ export function useUpdateProvider() {
           ...old,
           ...(data.name !== undefined && { name: data.name }),
           ...(data.nit !== undefined && { nit: data.nit }),
-          ...(data.providerType !== undefined && { providerType: data.providerType }),
-          ...(data.contactName !== undefined && { contactName: data.contactName }),
+          ...(data.providerType !== undefined && {
+            providerType: data.providerType,
+          }),
+          ...(data.contactName !== undefined && {
+            contactName: data.contactName,
+          }),
           ...(data.email !== undefined && { email: data.email }),
           ...(data.phone !== undefined && { phone: data.phone }),
           ...(data.address !== undefined && { address: data.address }),
-          ...(data.isActive !== undefined && { isActive: data.isActive }),
         }
       })
       return { previous, providerId }
@@ -51,7 +54,9 @@ export function useUpdateProvider() {
     },
 
     onSettled: (_data, _err, { providerId }) => {
-      queryClient.invalidateQueries({ queryKey: providerKeys.detail(companyId!, providerId) })
+      queryClient.invalidateQueries({
+        queryKey: providerKeys.detail(companyId!, providerId),
+      })
       queryClient.invalidateQueries({ queryKey: providerKeys.lists() })
     },
   })

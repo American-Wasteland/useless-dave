@@ -142,7 +142,6 @@ export function registerProviderRoutes(
           address,
           rutUrl,
           bankAccountUrl,
-          isActive,
         } = req.body
 
         const service = new ProviderService(
@@ -169,7 +168,6 @@ export function registerProviderRoutes(
             address,
             rutUrl: rutUrl === 'null' ? null : rutUrl,
             bankAccountUrl: bankAccountUrl === 'null' ? null : bankAccountUrl,
-            isActive,
           },
           {
             rut: files?.rut?.[0],

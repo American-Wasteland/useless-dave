@@ -68,9 +68,6 @@ export async function updateProvider(
     if (data.email) formData.append('email', data.email)
     if (data.phone) formData.append('phone', data.phone)
     if (data.address) formData.append('address', data.address)
-    if (data.isActive !== undefined)
-      formData.append('isActive', String(data.isActive))
-
     // Add file URLs if setting to null
     if (data.rutUrl === null) formData.append('rutUrl', 'null')
     if (data.bankAccountUrl === null) formData.append('bankAccountUrl', 'null')

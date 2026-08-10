@@ -15,14 +15,17 @@ export function CostCenterCreatePage() {
       type: data.type,
       name: data.name.trim(),
       description: data.description.trim() || undefined,
-      status: 'active',
     })
     navigate(`/${companyId}/accountancy/cost-centers`)
   }
 
   return (
     <PageLayout title="Crear centro de costo">
-      <CostCenterWizard mode="create" onSubmit={handleSubmit} isSubmitting={isCreating} />
+      <CostCenterWizard
+        mode="create"
+        onSubmit={handleSubmit}
+        isSubmitting={isCreating}
+      />
     </PageLayout>
   )
 }

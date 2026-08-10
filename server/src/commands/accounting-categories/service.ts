@@ -54,7 +54,6 @@ export class AccountingCategoryService {
     const docRef = await this.collection.add({
       name: data.name,
       description: data.description || null,
-      isActive: true,
       createdAt: new Date(),
     })
     const doc = await docRef.get()

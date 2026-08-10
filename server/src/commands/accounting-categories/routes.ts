@@ -76,7 +76,7 @@ export function registerAccountingCategoryRoutes(
     '/companies/:companyId/accounting-categories/:id',
     async (req: Request, res: Response) => {
       try {
-        const { name, description, isActive } = req.body
+        const { name, description } = req.body
         const service = new AccountingCategoryService(
           db,
           req.params.companyId as string,
@@ -84,7 +84,6 @@ export function registerAccountingCategoryRoutes(
         const category = await service.update(req.params.id as string, {
           name,
           description,
-          isActive,
         })
         res.json(category)
       } catch (error) {

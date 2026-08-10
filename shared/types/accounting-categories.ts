@@ -7,7 +7,6 @@ import type { Entity } from './common.js'
 export interface AccountingCategory extends Entity {
   name: string
   description?: string
-  isActive: boolean
 }
 
 export interface CreateAccountingCategoryInput {
@@ -18,5 +17,4 @@ export interface CreateAccountingCategoryInput {
 export interface UpdateAccountingCategoryInput {
   name?: string
   description?: string
-  isActive?: boolean
 }

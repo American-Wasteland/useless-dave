@@ -36,15 +36,6 @@ export function ListCostCentersPage() {
     }
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      active: '🟢 Activo',
-      completed: '✅ Completado',
-      cancelled: '❌ Cancelado',
-    }
-    return labels[status as keyof typeof labels] || status
-  }
-
   const getTypeLabel = (type: string) => {
     return type === 'project' ? '📁 Proyecto' : '⚙️ Operación'
   }
@@ -106,9 +97,6 @@ export function ListCostCentersPage() {
                   Tipo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Descripción
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -133,11 +121,6 @@ export function ListCostCentersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
                       {getTypeLabel(costCenter.type)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {getStatusLabel(costCenter.status)}
                     </div>
                   </td>
                   <td className="px-6 py-4">

@@ -28,7 +28,6 @@ export function CostCenterEditPage() {
       type: data.type,
       name: data.name.trim(),
       description: data.description.trim() || undefined,
-      status: data.status,
     })
     navigate(`/${companyId}/accountancy/cost-centers`)
   }
@@ -59,7 +58,6 @@ export function CostCenterEditPage() {
           type: costCenter.type,
           name: costCenter.name,
           description: costCenter.description ?? '',
-          status: costCenter.status,
         }}
         onSubmit={handleSubmit}
         isSubmitting={isUpdating}

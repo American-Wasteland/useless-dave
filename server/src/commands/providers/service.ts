@@ -103,7 +103,6 @@ export class ProviderService {
       address: data.address || null,
       rutUrl: null,
       bankAccountUrl: null,
-      isActive: true,
       createdAt: new Date(),
     })
 
