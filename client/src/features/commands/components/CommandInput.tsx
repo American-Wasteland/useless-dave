@@ -8,7 +8,7 @@ import { searchCommands } from '../commandRegistry'
 export function CommandInput() {
   const { companyId } = useParams<{ companyId: string }>()
   const navigate = useNavigate()
-  const [input, setInput] = useState('/')
+  const [input, setInput] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -16,9 +16,6 @@ export function CommandInput() {
   const suggestions = searchCommands(input)
 
   const handleFocus = () => {
-    if (!input.startsWith('/')) {
-      setInput('/')
-    }
     setShowSuggestions(true)
   }
 
@@ -28,7 +25,7 @@ export function CommandInput() {
 
   const executeCommand = (command: CommandDefinition) => {
     navigate(`/${companyId}${command.targetPath}`)
-    setInput('/')
+    setInput('')
     setShowSuggestions(false)
   }
 
@@ -54,7 +51,7 @@ export function CommandInput() {
         break
       case 'Escape':
         setShowSuggestions(false)
-        setInput('/')
+        setInput('')
         break
     }
   }
@@ -69,7 +66,7 @@ export function CommandInput() {
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-3xl border-2 border-border shadow-xl overflow-hidden max-h-[360px] overflow-y-auto">
           {(() => {
-            const isSearching = input.trim() !== '/'
+            const isSearching = input.trim().length > 0
             let lastGroup = ''
             return suggestions.map((cmd, index) => {
               const showHeader = !isSearching && cmd.group !== lastGroup
