@@ -1,8 +1,8 @@
 import { ArrowLeft, ExternalLink, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Badge, Button } from '../../components/ui'
-import { formatCOP, formatDate } from '../../lib/utils'
+import { Badge, Button, Currency } from '../../components/ui'
+import { formatDate } from '../../lib/utils'
 import type { PaymentStatus } from '../../types'
 import { deleteExpense } from './expenseService'
 import { PaymentForm } from './PaymentForm'
@@ -115,17 +115,19 @@ export function ExpenseDetail() {
             <div>
               <dt className="text-sm text-gray-500">Monto Total</dt>
               <dd className="text-sm font-medium text-gray-900">
-                {formatCOP(expense.totalAmount)}
+                <Currency amount={expense.totalAmount} />
               </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Retenciones</dt>
               <dd className="text-sm font-medium text-gray-900">
-                {formatCOP(
-                  expense.retentions.retefuente +
+                <Currency
+                  amount={
+                    expense.retentions.retefuente +
                     expense.retentions.reteIva +
-                    expense.retentions.reteIca,
-                )}
+                    expense.retentions.reteIca
+                  }
+                />
               </dd>
             </div>
             <div>
@@ -173,19 +175,19 @@ export function ExpenseDetail() {
             <div>
               <p className="text-sm text-gray-500">Total</p>
               <p className="text-lg font-semibold text-gray-900">
-                {formatCOP(expense.totalAmount)}
+                <Currency amount={expense.totalAmount} />
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Pagado</p>
               <p className="text-lg font-semibold text-green-600">
-                {formatCOP(totalPaid)}
+                <Currency amount={totalPaid} />
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Pendiente</p>
               <p className="text-lg font-semibold text-red-600">
-                {formatCOP(remaining)}
+                <Currency amount={remaining} />
               </p>
             </div>
           </div>
@@ -199,7 +201,7 @@ export function ExpenseDetail() {
                 >
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {formatCOP(payment.amount)}
+                      <Currency amount={payment.amount} />
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatDate(payment.date.toDate())}

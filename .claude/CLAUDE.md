@@ -57,6 +57,16 @@ Each entity has a dedicated service and routes:
 - `GET /search/:query` - Search
 - `GET /nit/:nit` - Find by NIT
 
+**Bank Accounts** (`/api/companies/:companyId/bank-accounts`)
+- `GET /` - List all
+- `POST /` - Create (requires `name`, `initialBalance: number`)
+- `GET /:id` - Get by ID (statements sorted by month desc)
+- `PATCH /:id` - Update
+- `DELETE /:id` - Delete
+- `POST /:id/statements` - Upload a statement PDF (`multipart/form-data`: `statement`, `month` YYYY-MM, `uploadedBy`)
+- `DELETE /:id/statements/:month` - Delete a statement by month
+- `GET /:id/movements` - List movements (sorted by date desc)
+
 ### Adding a New Entity
 
 1. **Create shared types** in `shared/types/{entity}.ts`:
@@ -254,6 +264,67 @@ The target list page must read `?q` on mount and initialize the search field wit
 const [query, setQuery] = useState(searchParams.get('q') ?? '')
 const focusSearch = searchParams.get('focus') === 'search' || !!searchParams.get('q')
 ```
+
+## Bank Accounts
+
+### Data Model
+
+`BankAccount` stores statements as an embedded array (not a subcollection). Movements are a subcollection.
+
+```typescript
+interface BankAccount {
+  id: string
+  name: string
+  initialBalance: number   // set once at creation, never changes
+  currentBalance: number   // initialBalance ± linked expenses/incomes; updated whenever a payment is recorded against this account
+  statements: BankStatement[]
+}
+
+interface BankStatement {
+  id: string        // "{month}-{timestamp}"
+  month: string     // YYYY-MM
+  fileUrl: string   // public Firebase Storage URL
+  fileName: string
+  uploadedAt: string
+  uploadedBy: string
+}
+
+interface BankMovement {
+  id: string
+  type: 'credit' | 'debit'
+  amount: number
+  description: string
+  date: string      // ISO date string
+  referenceType: 'expense' | 'income'
+  createdAt: string
+  createdBy: string
+}
+```
+
+### Statement Rules
+
+- Statements are sorted by `month` **descending** (most recent first) server-side in `getById()` — clients receive them pre-sorted
+- Uploading a statement for a month that already exists **replaces** it (old file deleted from Storage)
+- Upload returns the full updated `BankAccount` — use it to seed the React Query detail cache immediately (no refetch needed)
+- Files stored at: `companies/{companyId}/bank-accounts/{accountId}/statements/statement-{YYYY-MM}.pdf`
+
+### Routes
+
+The bank account view page (`BankAccountViewPage`) is a **layout route** with nested tab routes:
+
+```
+/:companyId/accountancy/bank-accounts/:accountId          → BankAccountViewPage (layout)
+/:companyId/accountancy/bank-accounts/:accountId/movements → MovementsTab (default)
+/:companyId/accountancy/bank-accounts/:accountId/statements → StatementsTab
+/:companyId/accountancy/bank-accounts/:accountId/statements/upload → StatementUploadPage
+```
+
+`BankAccountViewPage` passes `{ account }` via `<Outlet context={{ account }}>`. Child tabs read it with `useOutletContext<{ account: BankAccount }>()`.
+
+### UI Components
+
+- **`<Currency amount={n} />`** — Renders COP amounts with superscript cents. Use instead of `formatCurrency()` in JSX. Import from `client/src/components/ui`.
+- **`<MonthPicker value onChange label />`** — Month/year picker (Radix Popover + custom grid). Outputs `YYYY-MM`. Default to previous month. Import from `client/src/components/ui`.
 
 ## Entity Routes
 

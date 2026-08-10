@@ -3,8 +3,11 @@ import { ListCategoriesPage } from './commands/accounting-categories'
 import { CategoryCreatePage } from './commands/accounting-categories/create/CategoryCreatePage'
 import { BankAccountCreatePage } from './commands/bank-accounts/create/BankAccountCreatePage'
 import { ListBankAccountsPage } from './commands/bank-accounts/list/ListPage'
+import { StatementUploadPage } from './commands/bank-accounts/statements/StatementUploadPage'
 import { BankAccountEditPage } from './commands/bank-accounts/update/BankAccountEditPage'
 import { BankAccountViewPage } from './commands/bank-accounts/view/BankAccountViewPage'
+import { MovementsTab } from './commands/bank-accounts/view/MovementsTab'
+import { StatementsTab } from './commands/bank-accounts/view/StatementsTab'
 import { ListCostCentersPage } from './commands/cost-centers'
 import { CostCenterCreatePage } from './commands/cost-centers/create/CostCenterCreatePage'
 import { CostCenterEditPage } from './commands/cost-centers/update/CostCenterEditPage'
@@ -76,10 +79,18 @@ function App() {
             <Route
               path="accountancy/bank-accounts/:accountId"
               element={<BankAccountViewPage />}
-            />
+            >
+              <Route index element={<Navigate to="movements" replace />} />
+              <Route path="movements" element={<MovementsTab />} />
+              <Route path="statements" element={<StatementsTab />} />
+            </Route>
             <Route
               path="accountancy/bank-accounts/:accountId/edit"
               element={<BankAccountEditPage />}
+            />
+            <Route
+              path="accountancy/bank-accounts/:accountId/statements/upload"
+              element={<StatementUploadPage />}
             />
 
             {/* Cost centers */}

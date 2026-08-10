@@ -1,5 +1,6 @@
 import type {
   BankAccount,
+  BankMovement,
   BankStatement,
   CreateBankAccountInput,
   UpdateBankAccountInput,
@@ -100,17 +101,36 @@ export class BankAccountService {
   async getById(id: string): Promise<BankAccount | null> {
     const doc = await this.collection.doc(id).get()
     if (!doc.exists) return null
-    return {
+    const account = {
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data()?.createdAt?.toDate().toISOString(),
       updatedAt: doc.data()?.updatedAt?.toDate().toISOString(),
     } as BankAccount
+    account.statements = [...(account.statements ?? [])].sort((a, b) =>
+      b.month.localeCompare(a.month),
+    )
+    return account
+  }
+
+  async getMovements(id: string): Promise<BankMovement[]> {
+    const snapshot = await this.collection
+      .doc(id)
+      .collection('movements')
+      .orderBy('date', 'desc')
+      .get()
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate().toISOString(),
+    })) as BankMovement[]
   }
 
   async create(data: CreateBankAccountInput): Promise<BankAccount> {
     const docRef = await this.collection.add({
       name: data.name,
+      initialBalance: data.initialBalance,
+      currentBalance: data.initialBalance,
       statements: [],
       createdAt: new Date(),
     })
@@ -168,7 +188,7 @@ export class BankAccountService {
       bankAccount.statements.push(newStatement)
     }
 
-    // Sort statements by month (most recent first)
+    // Sort statements by month ascending
     bankAccount.statements.sort((a, b) => b.month.localeCompare(a.month))
 
     // Update document

@@ -9,13 +9,27 @@ export interface BankStatement {
   uploadedBy: string
 }
 
+export interface BankMovement {
+  id: string
+  type: 'credit' | 'debit'
+  amount: number
+  description: string
+  date: string // ISO string
+  referenceType: 'expense' | 'income'
+  createdAt: string
+  createdBy: string
+}
+
 export interface BankAccount extends Entity {
   name: string
+  initialBalance: number
+  currentBalance: number
   statements: BankStatement[]
 }
 
 export interface CreateBankAccountInput {
   name: string
+  initialBalance: number
 }
 
 export interface UpdateBankAccountInput {

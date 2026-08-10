@@ -25,6 +25,10 @@ All data operations go through server-side REST endpoints. The client never acce
 - `/api/companies/:companyId/accounting-categories` - Category CRUD
 - `/api/companies/:companyId/cost-centers` - Cost center CRUD
 - `/api/companies/:companyId/providers` - Provider CRUD with file uploads
+- `/api/companies/:companyId/bank-accounts` - Bank account CRUD
+  - `POST /:id/statements` - Upload a statement PDF (multipart/form-data)
+  - `DELETE /:id/statements/:month` - Delete a statement by month (`YYYY-MM`)
+  - `GET /:id/movements` - List movements (sorted by date desc)
 
 **Server Structure** (per entity):
 - **Service** - Business logic (`server/src/commands/{entity}/service.ts`)
@@ -55,8 +59,9 @@ See `server/src/dev-server.ts` for full endpoint list.
 ## Features
 
 - **Multi-Company Support** - Users can create and belong to multiple companies with isolated data
-- **Interactive Command System** - Step-by-step guided commands instead of free-text input
+- **Interactive Command System** - Command palette that navigates directly to the target page
 - **Spanish UI, English Code** - User-facing in Spanish, codebase in English
+- **Bank Accounts** - Track accounts with balance, movements, and monthly statement PDFs
 
 ## Command System
 

@@ -32,7 +32,7 @@ export function PageLayout({
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver

@@ -6,9 +6,9 @@ import {
   Wallet,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { Currency } from '../components/ui'
 import { useAuth } from '../features/auth'
 import { useExpenses } from '../features/expenses'
-import { formatCOP } from '../lib/utils'
 
 export function HomePage() {
   const { user, companies } = useAuth()
@@ -56,7 +56,7 @@ export function HomePage() {
             <div>
               <p className="text-sm text-gray-500">Por Pagar</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCOP(totalPending)}
+                <Currency amount={totalPending} />
               </p>
             </div>
           </div>

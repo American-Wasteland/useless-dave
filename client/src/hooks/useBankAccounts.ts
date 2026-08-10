@@ -115,7 +115,11 @@ export function useBankAccounts() {
         uploadedBy,
       )
     },
-    onSuccess: () => {
+    onSuccess: (updatedAccount, { accountId }) => {
+      queryClient.setQueryData(
+        bankAccountKeys.detail(companyId!, accountId),
+        updatedAccount,
+      )
       queryClient.invalidateQueries({
         queryKey: bankAccountKeys.list(companyId!),
       })

@@ -1,7 +1,7 @@
 import { FileText, Plus } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { Badge, Button } from '../../components/ui'
-import { formatCOP, formatDate } from '../../lib/utils'
+import { Badge, Button, Currency } from '../../components/ui'
+import { formatDate } from '../../lib/utils'
 import type { PaymentStatus } from '../../types'
 import { useExpenses } from './useExpenses'
 
@@ -94,7 +94,7 @@ export function ExpenseList() {
                       {expense.description || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
-                      {formatCOP(expense.totalAmount)}
+                      <Currency amount={expense.totalAmount} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <Badge variant={status.variant}>{status.label}</Badge>

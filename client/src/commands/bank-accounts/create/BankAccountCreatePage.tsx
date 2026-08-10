@@ -11,7 +11,10 @@ export function BankAccountCreatePage() {
   const { createBankAccount, isCreating } = useBankAccounts()
 
   const handleSubmit = async (data: BankAccountWizardData) => {
-    await createBankAccount({ name: data.name.trim() })
+    await createBankAccount({
+      name: data.name.trim(),
+      initialBalance: data.initialBalance,
+    })
     navigate(`/${companyId}/accountancy/bank-accounts`)
   }
 

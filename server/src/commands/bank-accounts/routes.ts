@@ -69,7 +69,7 @@ export function registerBankAccountRoutes(
     '/companies/:companyId/bank-accounts',
     async (req: Request, res: Response) => {
       try {
-        const { name } = req.body || {}
+        const { name, initialBalance } = req.body || {}
 
         if (!name) {
           res.status(400).json({ error: 'Name is required' })
@@ -82,10 +82,31 @@ export function registerBankAccountRoutes(
           req.params.companyId as string,
         )
 
-        const account = await service.create({ name })
+        const account = await service.create({
+          name,
+          initialBalance: Number(initialBalance ?? 0),
+        })
         res.status(201).json(account)
       } catch (error) {
         res.status(400).json({ error: String(error) })
+      }
+    },
+  )
+
+  // Get movements for a bank account
+  router.get(
+    '/companies/:companyId/bank-accounts/:id/movements',
+    async (req: Request, res: Response) => {
+      try {
+        const service = new BankAccountService(
+          db,
+          storage,
+          req.params.companyId as string,
+        )
+        const movements = await service.getMovements(req.params.id as string)
+        res.json(movements)
+      } catch (error) {
+        res.status(500).json({ error: String(error) })
       }
     },
   )

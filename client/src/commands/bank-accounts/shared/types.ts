@@ -1,5 +1,6 @@
 export type {
   BankAccount,
+  BankMovement,
   BankStatement,
   CreateBankAccountInput,
   UpdateBankAccountInput,

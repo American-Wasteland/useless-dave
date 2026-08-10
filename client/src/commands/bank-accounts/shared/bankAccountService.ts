@@ -1,6 +1,7 @@
 import { apiRequest, apiUpload } from './api'
 import type {
   BankAccount,
+  BankMovement,
   CreateBankAccountInput,
   UpdateBankAccountInput,
 } from './types'
@@ -84,6 +85,15 @@ export async function deleteStatement(
     {
       method: 'DELETE',
     },
+  )
+}
+
+export async function getMovements(
+  companyId: string,
+  accountId: string,
+): Promise<BankMovement[]> {
+  return apiRequest<BankMovement[]>(
+    `/companies/${companyId}/bank-accounts/${accountId}/movements`,
   )
 }
 

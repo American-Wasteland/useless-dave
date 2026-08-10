@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Button, FileUpload, Input, Modal, Select } from '../../components/ui'
+import {
+  Button,
+  Currency,
+  FileUpload,
+  Input,
+  Modal,
+  Select,
+} from '../../components/ui'
 import { usePaymentAccounts } from '../../hooks/usePaymentAccounts'
-import { formatCOP, formatDateInput } from '../../lib/utils'
+import { formatCurrency, formatDateInput } from '../../lib/utils'
 import type { PaymentFormData } from '../../types'
 import { createPayment } from './expenseService'
 
@@ -38,7 +45,7 @@ export function PaymentForm({
     if (!formData.amount || formData.amount <= 0)
       newErrors.amount = 'Ingresa un monto válido'
     if (formData.amount > maxAmount)
-      newErrors.amount = `El monto máximo es ${formatCOP(maxAmount)}`
+      newErrors.amount = `El monto máximo es ${formatCurrency(maxAmount)}`
     if (!formData.paymentAccountId)
       newErrors.paymentAccountId = 'Selecciona una cuenta'
     if (!formData.date) newErrors.date = 'Selecciona una fecha'
@@ -69,13 +76,13 @@ export function PaymentForm({
         <div className="p-3 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-500">Monto pendiente</p>
           <p className="text-lg font-semibold text-gray-900">
-            {formatCOP(maxAmount)}
+            <Currency amount={maxAmount} />
           </p>
         </div>
 
         <Input
           id="amount"
-          label="Monto a pagar (COP)"
+          label="Monto a pagar (Currency)"
           type="number"
           value={formData.amount || ''}
           onChange={(e) =>
