@@ -57,10 +57,22 @@ export function useCostCenters() {
     }) => {
       return costCenterService.updateCostCenter(companyId!, costCenterId, data)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: costCenterKeys.list(companyId!),
-      })
+    onMutate: async ({ costCenterId, data }) => {
+      const key = costCenterKeys.list(companyId!)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<CostCenter[]>(key)
+      queryClient.setQueryData<CostCenter[]>(key, (old) =>
+        old?.map((cc) => (cc.id === costCenterId ? { ...cc, ...data } : cc)),
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(costCenterKeys.list(companyId!), context.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: costCenterKeys.list(companyId!) })
     },
   })
 
@@ -97,5 +109,7 @@ export function useCostCenters() {
     createCostCenter,
     updateCostCenter,
     deleteCostCenter,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
   }
 }

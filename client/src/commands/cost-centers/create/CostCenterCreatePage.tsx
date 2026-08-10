@@ -1,105 +1,28 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { PageLayout } from '../../../components/layout'
-import { Button, Input, Select } from '../../../components/ui'
 import { useCompanyId } from '../../../hooks/useCompanyId'
 import { useCostCenters } from '../../../hooks/useCostCenters'
-import type { CostCenterType } from '../../../types'
+import type { CostCenterWizardData } from '../wizard/CostCenterWizard'
+import { CostCenterWizard } from '../wizard/CostCenterWizard'
 
 export function CostCenterCreatePage() {
   const navigate = useNavigate()
   const companyId = useCompanyId()
-  const { createCostCenter } = useCostCenters()
+  const { createCostCenter, isCreating } = useCostCenters()
 
-  const [type, setType] = useState<CostCenterType>('project')
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isCreating, setIsCreating] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) {
-      setError('El nombre es requerido')
-      return
-    }
-
-    setError(null)
-    setIsCreating(true)
-
-    try {
-      await createCostCenter({
-        type,
-        name: name.trim(),
-        description: description.trim() || undefined,
-        status: 'active',
-      })
-      navigate(`/${companyId}/accountancy/cost-centers`)
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Error al crear centro de costo',
-      )
-    } finally {
-      setIsCreating(false)
-    }
+  const handleSubmit = async (data: CostCenterWizardData) => {
+    await createCostCenter({
+      type: data.type,
+      name: data.name.trim(),
+      description: data.description.trim() || undefined,
+      status: 'active',
+    })
+    navigate(`/${companyId}/accountancy/cost-centers`)
   }
 
   return (
     <PageLayout title="Crear centro de costo">
-      <div className="card p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <Select
-            id="type"
-            label="Tipo"
-            value={type}
-            onChange={(e) => setType(e.target.value as CostCenterType)}
-            options={[
-              { value: 'project', label: '📁 Proyecto' },
-              { value: 'operation', label: '⚙️ Operación' },
-            ]}
-          />
-
-          <Input
-            id="name"
-            label="Nombre"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="ej: Proyecto Sede Norte"
-            autoFocus
-          />
-
-          <Input
-            id="description"
-            label="Descripción (opcional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="ej: Construcción de nueva sede"
-          />
-
-          <div className="p-3 bg-blue-50 text-blue-700 text-sm rounded-lg">
-            El centro de costo se creará con estado <strong>Activo</strong> por
-            defecto.
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" isLoading={isCreating} className="flex-1">
-              Crear centro de costo
-            </Button>
-            <Link
-              to={`/${companyId}/accountancy/cost-centers`}
-              className="inline-flex items-center justify-center rounded-lg font-medium transition-colors px-4 py-2 text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            >
-              Cancelar
-            </Link>
-          </div>
-        </form>
-      </div>
+      <CostCenterWizard mode="create" onSubmit={handleSubmit} isSubmitting={isCreating} />
     </PageLayout>
   )
 }

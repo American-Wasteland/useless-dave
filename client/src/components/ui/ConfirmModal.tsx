@@ -48,7 +48,7 @@ export function ConfirmModal({
         <div className="flex gap-3 pt-2">
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             onClick={onClose}
             disabled={isLoading}
             className="flex-1"

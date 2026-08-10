@@ -57,10 +57,26 @@ export function useBankAccounts() {
     }) => {
       return bankAccountService.updateBankAccount(companyId!, accountId, data)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: bankAccountKeys.list(companyId!),
-      })
+    onMutate: async ({ accountId, data }) => {
+      const key = bankAccountKeys.detail(companyId!, accountId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<BankAccount>(key)
+      queryClient.setQueryData<BankAccount>(key, (old) =>
+        old ? { ...old, name: data.name } : old,
+      )
+      return { previous, accountId }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          bankAccountKeys.detail(companyId!, context.accountId),
+          context.previous,
+        )
+      }
+    },
+    onSettled: (_data, _err, { accountId }) => {
+      queryClient.invalidateQueries({ queryKey: bankAccountKeys.detail(companyId!, accountId) })
+      queryClient.invalidateQueries({ queryKey: bankAccountKeys.list(companyId!) })
     },
   })
 
@@ -161,6 +177,8 @@ export function useBankAccounts() {
     deleteBankAccount,
     uploadStatement,
     deleteStatement,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
     isUploadingStatement: uploadStatementMutation.isPending,
   }
 }
