@@ -23,6 +23,9 @@ export interface CommandDefinition {
   parameters: CommandParameter[]
   keywords?: string[] // Extra search terms (synonyms, alternate phrasings)
   group: CommandGroupValue
+  queryMode?: {
+    placeholder: string // Prompt shown in dropdown when waiting for query input
+  }
 }
 
 // Import commands from their packages

@@ -1,6 +1,6 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { PageLayout } from '../../../components/layout'
 import { ConfirmModal } from '../../../components/ui'
 import { useCompanyId } from '../../../hooks/useCompanyId'
@@ -13,24 +13,47 @@ export function ListProvidersPage() {
   const companyId = useCompanyId()
   const { providers, isLoading } = useListProviders()
   const { deleteProvider, isDeleting } = useDeleteProvider()
+  const [searchParams] = useSearchParams()
+  const focusSearch =
+    searchParams.get('focus') === 'search' || !!searchParams.get('q')
+
+  const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [currentPage, setCurrentPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string
     name: string
   } | null>(null)
 
-  const totalPages = Math.ceil(providers.length / ITEMS_PER_PAGE)
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
-  const currentProviders = providers.slice(startIndex, endIndex)
+  const searchRef = useRef<HTMLInputElement>(null)
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (focusSearch) {
+      searchRef.current?.focus()
+    }
+  }, [focusSearch])
+
+  // Reset page when query changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [])
+
+  const filtered = query.trim()
+    ? providers.filter((p) => {
+        const q = query.toLowerCase()
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.nit.includes(q) ||
+          p.contactName?.toLowerCase().includes(q)
+        )
+      })
+    : providers
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const currentProviders = filtered.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  )
 
   const handleDeleteClick = (id: string, name: string) => {
     setDeleteConfirm({ id, name })
@@ -44,6 +67,14 @@ export function ListProvidersPage() {
     } catch (error) {
       console.error('Error deleting provider:', error)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+      </div>
+    )
   }
 
   return (
@@ -73,14 +104,31 @@ export function ListProvidersPage() {
         isLoading={isDeleting}
       />
 
-      {providers.length === 0 ? (
+      {/* Search bar */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          ref={searchRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar por nombre, NIT o contacto..."
+          className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="card p-8 text-center">
           <p className="text-gray-500">
-            No hay proveedores registrados. Usa{' '}
-            <code className="px-2 py-1 bg-gray-100 rounded text-sm">
-              /crear-proveedor
-            </code>{' '}
-            para crear uno.
+            {query.trim()
+              ? `No se encontraron proveedores para "${query}"`
+              : 'No hay proveedores registrados. Usa '}
+            {!query.trim() && (
+              <code className="px-2 py-1 bg-gray-100 rounded text-sm">
+                /crear-proveedor
+              </code>
+            )}
+            {!query.trim() && ' para crear uno.'}
           </p>
         </div>
       ) : (
@@ -184,7 +232,6 @@ export function ListProvidersPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-gray-500">

@@ -6,9 +6,12 @@ export const findProviderCommand: CommandDefinition = {
   name: '/buscar-proveedor',
   description: 'Buscar un proveedor por nombre o NIT',
   icon: '🔍',
-  targetPath: '/accountancy/providers',
+  targetPath: '/accountancy/providers?focus=search',
   group: CommandGroup.Providers,
   parameters: [],
+  queryMode: {
+    placeholder: 'Nombre, NIT o contacto del proveedor',
+  },
   keywords: [
     'ver',
     'listar',
