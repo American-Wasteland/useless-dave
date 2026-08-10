@@ -55,7 +55,9 @@ export function ChatLayout() {
             alt="Dave"
             className="w-10 h-10 drop-shadow-md"
           />
-          <span className="text-xl font-black text-foreground">Dave</span>
+          <span className="text-sm font-black text-foreground">
+            {user?.displayName}
+          </span>
 
           {/* Company logo/name */}
           {currentCompany && (

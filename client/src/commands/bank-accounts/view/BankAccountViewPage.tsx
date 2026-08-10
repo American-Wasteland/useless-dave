@@ -1,14 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  ArrowLeft,
-  Download,
-  FileText,
-  Pencil,
-  Trash2,
-  Upload,
-} from 'lucide-react'
+import { Download, FileText, Pencil, Trash2, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { PageLayout } from '../../../components/layout'
 import { Button, ConfirmModal } from '../../../components/ui'
 import { useAuth } from '../../../features/auth/AuthContext'
 import {
@@ -124,15 +118,8 @@ export function BankAccountViewPage() {
         isLoading={isDeleting}
       />
 
-      <div className="max-w-3xl mx-auto p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <Link
-            to={`/${companyId}/accountancy/bank-accounts`}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </Link>
+      <PageLayout
+        actions={
           <Link
             to={`/${companyId}/accountancy/bank-accounts/${accountId}/edit`}
           >
@@ -141,8 +128,8 @@ export function BankAccountViewPage() {
               Editar
             </Button>
           </Link>
-        </div>
-
+        }
+      >
         <div className="card p-6 space-y-6">
           {/* Account name */}
           <div>
@@ -260,7 +247,7 @@ export function BankAccountViewPage() {
             )}
           </div>
         </div>
-      </div>
+      </PageLayout>
     </>
   )
 }

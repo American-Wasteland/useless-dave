@@ -1,5 +1,6 @@
-import { ArrowLeft, Eye, Pencil } from 'lucide-react'
+import { Eye, Pencil } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { PageLayout } from '../../../components/layout'
 import { Button } from '../../../components/ui'
 import { useCompanyId } from '../../../hooks/useCompanyId'
 import { useProviderById } from '../update/useProviderById'
@@ -28,23 +29,16 @@ export function ProviderViewPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          to={`/${companyId}/accountancy/providers`}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver
-        </Link>
+    <PageLayout
+      actions={
         <Link to={`/${companyId}/accountancy/providers/${providerId}/edit`}>
           <Button variant="secondary">
             <Pencil className="h-4 w-4 mr-2" />
             Editar
           </Button>
         </Link>
-      </div>
-
+      }
+    >
       <div className="card p-6">
         {/* Header */}
         <div className="pb-4 border-b border-gray-200 mb-6">
@@ -176,6 +170,6 @@ export function ProviderViewPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   )
 }

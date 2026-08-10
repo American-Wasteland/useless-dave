@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { PageLayout } from '../../../components/layout'
 import { Button, Input } from '../../../components/ui'
 import {
   bankAccountKeys,
@@ -77,20 +77,7 @@ export function BankAccountEditPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="mb-6">
-        <Link
-          to={`/${companyId}/accountancy/bank-accounts/${accountId}`}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver
-        </Link>
-        <h1 className="text-2xl font-bold text-foreground">
-          Actualizar cuenta bancaria
-        </h1>
-      </div>
-
+    <PageLayout title="Actualizar cuenta bancaria">
       <div className="card p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -121,6 +108,6 @@ export function BankAccountEditPage() {
           </div>
         </form>
       </div>
-    </div>
+    </PageLayout>
   )
 }
