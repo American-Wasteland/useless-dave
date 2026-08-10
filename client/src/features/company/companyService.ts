@@ -1,137 +1,34 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  serverTimestamp,
-  setDoc,
-} from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { db, storage } from '../../lib/firebase'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
+import { db } from '../../lib/firebase'
 import type { Company } from '../../types'
 
-const MAX_LOGO_SIZE = 1024 * 1024 // 1MB
-const MAX_LOGO_DIMENSION = 512
-
-function validateLogoFile(file: File): void {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('El archivo debe ser una imagen')
-  }
-  if (file.size > MAX_LOGO_SIZE) {
-    throw new Error('La imagen no debe superar 1MB')
-  }
-}
-
-async function resizeImage(file: File, maxDimension: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-
-    img.onload = () => {
-      let { width, height } = img
-
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = (height / width) * maxDimension
-          width = maxDimension
-        } else {
-          width = (width / height) * maxDimension
-          height = maxDimension
-        }
-      }
-
-      canvas.width = width
-      canvas.height = height
-      ctx?.drawImage(img, 0, 0, width, height)
-
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob)
-          } else {
-            reject(new Error('Failed to resize image'))
-          }
-        },
-        'image/png',
-        0.9,
-      )
-    }
-
-    img.onerror = () => reject(new Error('Failed to load image'))
-    img.src = URL.createObjectURL(file)
-  })
-}
-
-export async function uploadCompanyLogo(
-  companyId: string,
-  file: File,
-): Promise<string> {
-  validateLogoFile(file)
-
-  const resizedBlob = await resizeImage(file, MAX_LOGO_DIMENSION)
-  const logoRef = ref(storage, `logos/companies/${companyId}.png`)
-
-  await uploadBytes(logoRef, resizedBlob, {
-    contentType: 'image/png',
-  })
-
-  return getDownloadURL(logoRef)
-}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 export async function createCompany(
   userId: string,
   name: string,
   logoFile?: File,
 ): Promise<Company> {
-  // Generate a new company ID
-  const companyRef = doc(collection(db, 'companies'))
-  const companyId = companyRef.id
-
-  let logoUrl: string | undefined
-
-  // Upload logo if provided
+  const formData = new FormData()
+  formData.append('name', name)
+  formData.append('userId', userId)
   if (logoFile) {
-    logoUrl = await uploadCompanyLogo(companyId, logoFile)
+    formData.append('logo', logoFile)
   }
 
-  // Create the company document
-  const companyData = {
-    name,
-    logoUrl,
-    createdAt: serverTimestamp(),
-    createdBy: userId,
-    settings: { currency: 'COP' as const },
+  const response = await fetch(`${API_BASE_URL}/companies`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ error: 'Unknown error' }))
+    throw new Error(error.error || 'Error al crear la empresa')
   }
 
-  await setDoc(companyRef, companyData)
-
-  // Create user record in company's users subcollection
-  const userRef = doc(db, 'companies', companyId, 'users', userId)
-  await setDoc(userRef, {
-    email: '', // Will be filled from auth context
-    role: 'admin',
-    modules: {
-      expenses: 'edit',
-    },
-  })
-
-  // Create membership in user's memberships subcollection
-  const membershipRef = doc(db, 'users', userId, 'memberships', companyId)
-  await setDoc(membershipRef, {
-    companyId,
-    role: 'admin',
-    joinedAt: serverTimestamp(),
-  })
-
-  return {
-    id: companyId,
-    name,
-    logoUrl,
-    createdBy: userId,
-    createdAt: serverTimestamp(),
-    settings: { currency: 'COP' },
-  } as unknown as Company
+  return response.json()
 }
 
 export async function getUserCompanies(userId: string): Promise<Company[]> {

@@ -5,5 +5,4 @@ export {
   getCompany,
   getUserCompanies,
   isUserMemberOfCompany,
-  uploadCompanyLogo,
 } from './companyService'

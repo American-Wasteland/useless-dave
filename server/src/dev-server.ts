@@ -3,6 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import { registerAccountingCategoryRoutes } from './commands/accounting-categories/routes.js'
 import { registerBankAccountRoutes } from './commands/bank-accounts/routes.js'
+import { registerCompanyRoutes } from './commands/companies/routes.js'
 import { registerCostCenterRoutes } from './commands/cost-centers/routes.js'
 import { registerProviderRoutes } from './commands/providers/routes.js'
 import { db, storage } from './lib/db.js'
@@ -18,6 +19,7 @@ const router = express.Router()
 // Register command routes
 registerAccountingCategoryRoutes(router, db)
 registerBankAccountRoutes(router, db, storage)
+registerCompanyRoutes(router, db, storage)
 registerCostCenterRoutes(router, db)
 registerProviderRoutes(router, db, storage)
 
@@ -26,6 +28,7 @@ app.use('/api', router)
 app.listen(PORT, () => {
   console.log(`🚀 Dev server running at http://localhost:${PORT}`)
   console.log('   Available endpoints:')
+  console.log('   POST   /api/companies')
   console.log('   GET    /api/companies/:companyId/accounting-categories')
   console.log('   POST   /api/companies/:companyId/accounting-categories')
   console.log('   GET    /api/companies/:companyId/accounting-categories/:id')
