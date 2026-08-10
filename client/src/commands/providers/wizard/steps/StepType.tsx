@@ -10,8 +10,12 @@ export function StepType({ value, onChange }: StepTypeProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Tipo de proveedor</h2>
-        <p className="text-sm text-muted-foreground mt-1">¿Con quién estás trabajando?</p>
+        <h2 className="text-lg font-semibold text-foreground">
+          Tipo de proveedor
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          ¿Con quién estás trabajando?
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-4 pt-2">
         <button
@@ -26,7 +30,9 @@ export function StepType({ value, onChange }: StepTypeProps) {
         >
           <div className="text-3xl">🏢</div>
           <div className="font-semibold text-sm text-foreground">Empresa</div>
-          <div className="text-xs text-muted-foreground">Persona jurídica o sociedad</div>
+          <div className="text-xs text-muted-foreground">
+            Persona jurídica o sociedad
+          </div>
         </button>
         <button
           type="button"
@@ -39,8 +45,12 @@ export function StepType({ value, onChange }: StepTypeProps) {
           )}
         >
           <div className="text-3xl">👤</div>
-          <div className="font-semibold text-sm text-foreground">Persona Natural</div>
-          <div className="text-xs text-muted-foreground">Individuo o trabajador independiente</div>
+          <div className="font-semibold text-sm text-foreground">
+            Persona Natural
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Individuo o trabajador independiente
+          </div>
         </button>
       </div>
     </div>

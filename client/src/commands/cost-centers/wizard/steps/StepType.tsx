@@ -10,8 +10,12 @@ export function StepType({ value, onChange }: StepTypeProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Tipo de centro de costo</h2>
-        <p className="text-sm text-muted-foreground mt-1">¿Cómo clasificas este centro?</p>
+        <h2 className="text-lg font-semibold text-foreground">
+          Tipo de centro de costo
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          ¿Cómo clasificas este centro?
+        </p>
       </div>
       <div className="grid grid-cols-2 gap-4 pt-2">
         <button
@@ -26,7 +30,9 @@ export function StepType({ value, onChange }: StepTypeProps) {
         >
           <div className="text-3xl">📁</div>
           <div className="font-semibold text-sm text-foreground">Proyecto</div>
-          <div className="text-xs text-muted-foreground">Iniciativa con inicio y fin definido</div>
+          <div className="text-xs text-muted-foreground">
+            Iniciativa con inicio y fin definido
+          </div>
         </button>
         <button
           type="button"
@@ -40,7 +46,9 @@ export function StepType({ value, onChange }: StepTypeProps) {
         >
           <div className="text-3xl">⚙️</div>
           <div className="font-semibold text-sm text-foreground">Operación</div>
-          <div className="text-xs text-muted-foreground">Actividad recurrente o continua</div>
+          <div className="text-xs text-muted-foreground">
+            Actividad recurrente o continua
+          </div>
         </button>
       </div>
     </div>

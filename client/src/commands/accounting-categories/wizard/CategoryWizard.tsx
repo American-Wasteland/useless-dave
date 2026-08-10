@@ -8,7 +8,10 @@ export interface CategoryWizardData {
 
 type Action = { type: 'update'; payload: Partial<CategoryWizardData> }
 
-function reducer(state: CategoryWizardData, action: Action): CategoryWizardData {
+function reducer(
+  state: CategoryWizardData,
+  action: Action,
+): CategoryWizardData {
   return { ...state, ...action.payload }
 }
 
@@ -43,7 +46,10 @@ export function CategoryWizard({
 
   const handleSubmit = async () => {
     const err = validate(data)
-    if (err) { setError(err); return }
+    if (err) {
+      setError(err)
+      return
+    }
     setError(null)
     try {
       await onSubmit(data)
@@ -56,11 +62,15 @@ export function CategoryWizard({
     <div className="space-y-6">
       <div className="card p-6">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
+            {error}
+          </div>
         )}
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Detalles de la categoría</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Detalles de la categoría
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Información para identificar esta categoría contable
             </p>

@@ -75,8 +75,12 @@ export function useBankAccounts() {
       }
     },
     onSettled: (_data, _err, { accountId }) => {
-      queryClient.invalidateQueries({ queryKey: bankAccountKeys.detail(companyId!, accountId) })
-      queryClient.invalidateQueries({ queryKey: bankAccountKeys.list(companyId!) })
+      queryClient.invalidateQueries({
+        queryKey: bankAccountKeys.detail(companyId!, accountId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: bankAccountKeys.list(companyId!),
+      })
     },
   })
 

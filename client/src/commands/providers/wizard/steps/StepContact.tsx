@@ -10,7 +10,9 @@ export function StepContact({ data, onChange }: StepContactProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Persona de contacto</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+          Persona de contacto
+        </h2>
         <p className="text-sm text-muted-foreground mt-1">
           ¿A quién contactamos en este proveedor? (opcional)
         </p>

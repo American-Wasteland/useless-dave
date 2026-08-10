@@ -20,7 +20,11 @@ export function CategoryCreatePage() {
 
   return (
     <PageLayout title="Crear categoría contable">
-      <CategoryWizard mode="create" onSubmit={handleSubmit} isSubmitting={isCreating} />
+      <CategoryWizard
+        mode="create"
+        onSubmit={handleSubmit}
+        isSubmitting={isCreating}
+      />
     </PageLayout>
   )
 }

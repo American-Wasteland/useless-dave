@@ -10,8 +10,12 @@ export function StepIdentity({ data, onChange }: StepIdentityProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Identificación</h2>
-        <p className="text-sm text-muted-foreground mt-1">Datos básicos del proveedor</p>
+        <h2 className="text-lg font-semibold text-foreground">
+          Identificación
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Datos básicos del proveedor
+        </p>
       </div>
       <Input
         id="nit"

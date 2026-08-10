@@ -7,7 +7,10 @@ export interface BankAccountWizardData {
 
 type Action = { type: 'update'; payload: Partial<BankAccountWizardData> }
 
-function reducer(state: BankAccountWizardData, action: Action): BankAccountWizardData {
+function reducer(
+  state: BankAccountWizardData,
+  action: Action,
+): BankAccountWizardData {
   return { ...state, ...action.payload }
 }
 
@@ -41,7 +44,10 @@ export function BankAccountWizard({
 
   const handleSubmit = async () => {
     const err = validate(data)
-    if (err) { setError(err); return }
+    if (err) {
+      setError(err)
+      return
+    }
     setError(null)
     try {
       await onSubmit(data)
@@ -54,11 +60,15 @@ export function BankAccountWizard({
     <div className="space-y-6">
       <div className="card p-6">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">{error}</div>
+          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
+            {error}
+          </div>
         )}
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Información de la cuenta</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Información de la cuenta
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Nombre que identifica esta cuenta bancaria
             </p>

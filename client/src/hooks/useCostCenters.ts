@@ -68,11 +68,16 @@ export function useCostCenters() {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(costCenterKeys.list(companyId!), context.previous)
+        queryClient.setQueryData(
+          costCenterKeys.list(companyId!),
+          context.previous,
+        )
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: costCenterKeys.list(companyId!) })
+      queryClient.invalidateQueries({
+        queryKey: costCenterKeys.list(companyId!),
+      })
     },
   })
 

@@ -20,7 +20,9 @@ export function StepDocuments({
   existingBankAccountUrl,
   onDeleteDocument,
 }: StepDocumentsProps) {
-  const [deleteConfirm, setDeleteConfirm] = useState<'rut' | 'bankAccount' | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<
+    'rut' | 'bankAccount' | null
+  >(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDeleteConfirm = async () => {
@@ -86,7 +88,13 @@ interface DocumentSlotProps {
   onDelete: () => void
 }
 
-function DocumentSlot({ label, existingUrl, file, onFileChange, onDelete }: DocumentSlotProps) {
+function DocumentSlot({
+  label,
+  existingUrl,
+  file,
+  onFileChange,
+  onDelete,
+}: DocumentSlotProps) {
   return (
     <div className="p-4 bg-muted rounded-xl space-y-3">
       <div className="flex items-center justify-between">
@@ -121,7 +129,11 @@ function DocumentSlot({ label, existingUrl, file, onFileChange, onDelete }: Docu
           accept=".pdf"
           value={file}
           onChange={onFileChange}
-          error={file && file.type !== 'application/pdf' ? 'Solo archivos PDF' : undefined}
+          error={
+            file && file.type !== 'application/pdf'
+              ? 'Solo archivos PDF'
+              : undefined
+          }
         />
       )}
     </div>

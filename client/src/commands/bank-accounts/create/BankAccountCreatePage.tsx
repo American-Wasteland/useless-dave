@@ -17,7 +17,11 @@ export function BankAccountCreatePage() {
 
   return (
     <PageLayout title="Crear cuenta bancaria">
-      <BankAccountWizard mode="create" onSubmit={handleSubmit} isSubmitting={isCreating} />
+      <BankAccountWizard
+        mode="create"
+        onSubmit={handleSubmit}
+        isSubmitting={isCreating}
+      />
     </PageLayout>
   )
 }

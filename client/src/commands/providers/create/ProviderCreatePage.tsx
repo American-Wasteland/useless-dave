@@ -32,7 +32,11 @@ export function ProviderCreatePage() {
 
   return (
     <PageLayout title="Crear proveedor">
-      <ProviderWizard mode="create" onSubmit={handleSubmit} isSubmitting={isCreating} />
+      <ProviderWizard
+        mode="create"
+        onSubmit={handleSubmit}
+        isSubmitting={isCreating}
+      />
     </PageLayout>
   )
 }
