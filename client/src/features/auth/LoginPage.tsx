@@ -30,7 +30,7 @@ export function LoginPage() {
 
       <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
         {/* Logo */}
-        <div className="mb-8 text-center">
+        <div className="mb-16 text-center">
           <img
             src={daveEmblem}
             alt="Useless Dave"
@@ -40,14 +40,14 @@ export function LoginPage() {
             Useless Dave
           </h1>
           <p className="text-lg text-muted-foreground">
-            El ERP que creamos porque los otros no sirven
+            Me hice un ERP porque los otros no sirven
           </p>
         </div>
 
         {/* Main content */}
         <div className="w-full max-w-lg">
           {/* Floating sticker badges */}
-          <div className="relative mb-8">
+          <div className="relative mb-16">
             <div className="flex flex-wrap justify-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-bold shadow-lg transform -rotate-2 hover:rotate-0 transition-transform">
                 🤖 Sin IA que no entiende
@@ -71,7 +71,7 @@ export function LoginPage() {
                 ¡Hola! 👋
               </h2>
               <p className="text-muted-foreground">
-                Entra para hablar con Dave
+                Entra para administrar la empresa
               </p>
             </div>
 
@@ -104,13 +104,13 @@ export function LoginPage() {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground mt-6">
-              Tus datos están seguros 🔒
+              🔒 Tus datos están seguros 🔒
             </p>
           </div>
 
           {/* Fun tagline */}
           <p className="text-center text-sm text-muted-foreground mt-8 font-medium">
-            ✨ El ERP que no te hace sufrir ✨
+            ✨ El ERP que no nos hace sufrir ✨
           </p>
         </div>
       </div>
