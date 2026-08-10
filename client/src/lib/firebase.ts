@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import {
-  browserSessionPersistence,
+  browserLocalPersistence,
   connectAuthEmulator,
   getAuth,
   setPersistence,
@@ -22,8 +22,7 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 
-// Use session persistence to avoid IndexedDB issues
-setPersistence(auth, browserSessionPersistence).catch((error) => {
+setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error('Failed to set auth persistence:', error)
 })
 
