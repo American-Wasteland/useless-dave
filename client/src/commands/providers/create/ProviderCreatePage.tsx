@@ -27,7 +27,7 @@ export function ProviderCreatePage() {
       },
       Object.keys(files).length > 0 ? files : undefined,
     )
-    navigate(`/${companyId}/accountancy/providers`)
+    navigate(`/${companyId}/accountancy/providers`, { replace: true })
   }
 
   return (

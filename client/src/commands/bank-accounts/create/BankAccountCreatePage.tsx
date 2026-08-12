@@ -15,7 +15,7 @@ export function BankAccountCreatePage() {
       name: data.name.trim(),
       initialBalance: data.initialBalance,
     })
-    navigate(`/${companyId}/accountancy/bank-accounts`)
+    navigate(`/${companyId}/accountancy/bank-accounts`, { replace: true })
   }
 
   return (

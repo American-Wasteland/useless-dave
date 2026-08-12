@@ -36,7 +36,9 @@ export function ProviderEditPage() {
       },
       files: Object.keys(files).length > 0 ? files : undefined,
     })
-    navigate(`/${companyId}/accountancy/providers/${providerId}`)
+    navigate(`/${companyId}/accountancy/providers/${providerId}`, {
+      replace: true,
+    })
   }
 
   const handleDeleteDocument = async (doc: 'rut' | 'bankAccount') => {

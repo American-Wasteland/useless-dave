@@ -28,7 +28,7 @@ export function CostCenterEditPage() {
       type: data.type,
       name: data.name.trim(),
     })
-    navigate(`/${companyId}/accountancy/cost-centers`)
+    navigate(`/${companyId}/accountancy/cost-centers`, { replace: true })
   }
 
   if (isLoading) {

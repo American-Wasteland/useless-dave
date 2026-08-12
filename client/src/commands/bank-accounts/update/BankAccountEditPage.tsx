@@ -25,7 +25,9 @@ export function BankAccountEditPage() {
   const handleSubmit = async (data: BankAccountWizardData) => {
     if (!accountId) return
     await updateBankAccount(accountId, { name: data.name.trim() })
-    navigate(`/${companyId}/accountancy/bank-accounts/${accountId}`)
+    navigate(`/${companyId}/accountancy/bank-accounts/${accountId}`, {
+      replace: true,
+    })
   }
 
   if (isLoading) {

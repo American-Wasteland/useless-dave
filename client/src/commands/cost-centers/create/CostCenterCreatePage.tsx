@@ -12,7 +12,7 @@ export function CostCenterCreatePage() {
 
   const handleSubmit = async (data: CostCenterWizardData) => {
     await createCostCenter({ type: data.type, name: data.name.trim() })
-    navigate(`/${companyId}/accountancy/cost-centers`)
+    navigate(`/${companyId}/accountancy/cost-centers`, { replace: true })
   }
 
   return (

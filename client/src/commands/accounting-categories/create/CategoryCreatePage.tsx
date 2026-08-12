@@ -12,7 +12,7 @@ export function CategoryCreatePage() {
 
   const handleSubmit = async (data: CategoryWizardData) => {
     await createCategory({ name: data.name.trim() })
-    navigate(`/${companyId}/accountancy/categories`)
+    navigate(`/${companyId}/accountancy/categories`, { replace: true })
   }
 
   return (

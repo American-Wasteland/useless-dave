@@ -373,6 +373,19 @@ Edit mode: mount the wizard only after the entity query resolves, so `initialDat
 - **Atrás** — right side, shown only when `step > 0`
 - **Continuar / Submit** — rightmost, always visible
 
+#### Post-submit navigation
+
+After successful wizard submission, always use `{ replace: true }` to prevent the back button from returning to wizard steps:
+
+```typescript
+const handleSubmit = async (data: WizardData) => {
+  await createEntity(data)
+  navigate(`/${companyId}/path/to/list`, { replace: true })
+}
+```
+
+This replaces the wizard entry in the browser history, so clicking back goes to the page before the wizard, not the final wizard step.
+
 ### List Page Pattern
 
 - `PageLayout` wraps the page with title, subtitle, and a "New X" button (top-right)
