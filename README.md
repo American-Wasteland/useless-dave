@@ -59,74 +59,65 @@ See `server/src/dev-server.ts` for full endpoint list.
 ## Features
 
 - **Multi-Company Support** - Users can create and belong to multiple companies with isolated data
-- **Interactive Command System** - Command palette that navigates directly to the target page
+- **Interactive Command System** - Command palette with direct navigation to dedicated pages
 - **Spanish UI, English Code** - User-facing in Spanish, codebase in English
 - **Bank Accounts** - Track accounts with balance, movements, and monthly statement PDFs
+- **Step Wizards** - Multi-step forms with browser back/forward support
 
 ## Command System
 
-Useless Dave uses an interactive command system that guides users through operations step-by-step.
+Useless Dave uses a command palette that navigates directly to dedicated pages. No parameter collection happens in the command interface — all input is handled by the target page.
 
 ### How It Works
 
 1. **User focuses input** → "/" automatically appears, dropdown opens above
-2. **Select command** → Type or click to select (e.g., `/crear-categoria-contable`)
-3. **Collect parameters** → Input prompts for each parameter one by one
-4. **Navigate to result** → Opens page with collected parameters in URL
+2. **Select command** → Type or click to select (e.g., `/crear-proveedor`)
+3. **Navigate immediately** → Opens the dedicated page for that action
 
 **Example Flow:**
 ```
-User types: /crear-categoria-contable
-Input prompts: "Nombre de la categoría" (1/2)
-User types: "Insumos médicos" → Enter
-Input prompts: "Descripción (opcional)" (2/2)
-User types: "Materiales" → Enter
-→ Navigates to: /categories/create?name=Insumos médicos&description=Materiales
+User types: /crear-proveedor
+User selects command → Enter
+→ Navigates to: /:companyId/accountancy/providers/create
+→ User completes wizard with all provider details
 ```
 
 ### Available Commands
 
 - `/crear-categoria-contable` - Create accounting category
-- `/buscar-categoria-contable` - Find accounting categories
 - `/crear-centro-costo` - Create cost center
-- `/buscar-centro-costo` - Find cost centers
+- `/listar-centros-costo` - View all cost centers
 - `/crear-proveedor` - Create provider
-- `/buscar-proveedor` - Find provider
+- `/buscar-proveedor` - Search providers (with optional query)
+- `/crear-cuenta-bancaria` - Create bank account
 
-### Entity Management Pattern
+### Search Commands
 
-**All entity CRUD operations are centralized on a single dedicated page per entity.**
-
-Each entity has:
-- One dedicated page (e.g., `/accountancy/providers`)
-- Commands that navigate to that page with modal query params
-- All operations (create, find, view, update) handled through modals
-
-**Example: Provider Commands**
+Some commands support an optional search query. When selected, the command waits for the user to type a query before navigating:
 
 ```typescript
-// Create provider command
-{
-  id: 'create-provider',
-  name: '/crear-proveedor',
-  description: 'Crear un nuevo proveedor',
-  icon: '🏢',
-  targetPath: '/accountancy/providers?modal=provider&mode=create',
-  parameters: [...]
-}
-
-// Find provider command
 {
   id: 'find-provider',
   name: '/buscar-proveedor',
-  description: 'Buscar un proveedor',
-  icon: '🔍',
-  targetPath: '/accountancy/providers?modal=provider&mode=find',
-  parameters: [{ name: 'query', ... }]
+  targetPath: '/accountancy/providers?focus=search',
+  queryMode: {
+    placeholder: 'Nombre, NIT o contacto del proveedor',
+  },
 }
 ```
 
-Both commands navigate to the same page (`/accountancy/providers`) but with different modal states.
+The target page receives `?q=<query>` and pre-fills its search field.
+
+### Entity Routes
+
+Each entity uses dedicated pages for all CRUD operations:
+
+| Entity | List | Create | View | Edit |
+|--------|------|--------|------|------|
+| Providers | `/accountancy/providers` | `.../create` | `.../:id` | `.../:id/edit` |
+| Bank Accounts | `/accountancy/bank-accounts` | `.../create` | `.../:id` | `.../:id/edit` |
+| Cost Centers | `/accountancy/cost-centers` | `.../create` | — | `.../:id/edit` |
+| Categories | `/accountancy/categories` | `.../create` | — | inline edit |
 
 ### Adding a New Command
 
@@ -134,25 +125,20 @@ Both commands navigate to the same page (`/accountancy/providers`) but with diff
 
 ```typescript
 {
-  id: 'my-command',
-  name: '/mi-comando',                    // Spanish name
-  description: 'Descripción del comando',
+  id: 'create-my-entity',
+  name: '/crear-mi-entidad',              // Spanish name
+  description: 'Crear una nueva entidad',
   icon: '🎯',
-  targetPath: '/my-entity?modal=myentity&mode=action',  // Navigate to entity page with modal
-  parameters: [
-    {
-      name: 'paramName',                  // English param name
-      label: 'Etiqueta del parámetro',   // Spanish prompt
-      type: 'text',
-      required: true,
-    },
-  ],
+  group: CommandGroup.MyGroup,
+  targetPath: '/accountancy/my-entity/create',
+  parameters: [],  // Always empty — no inline collection
+  keywords: ['entidad', 'crear'],
 }
 ```
 
-**2. Create modal manager and modals** (see Modal Management section below)
+**2. Create the target page** — the route handles all user input (wizard, form, etc.)
 
-That's it! The command automatically appears in the dropdown and navigates with merged query params.
+That's it! The command appears in the dropdown and navigates directly.
 
 ## Getting Started
 
@@ -233,34 +219,53 @@ npm run dev
 
 ## UI Conventions
 
-### Modal Management
+### Page-Based Architecture
 
-All modals use a **centralized query parameter system** for consistency:
+All entity CRUD operations use dedicated page routes (no modals):
 
-**Format**: `?modal={entity}&mode={action}&id={id}`
+```
+/:companyId/accountancy/providers          → List
+/:companyId/accountancy/providers/create   → Create wizard
+/:companyId/accountancy/providers/:id      → View details
+/:companyId/accountancy/providers/:id/edit → Edit wizard
+```
 
-**Examples**:
-- Create: `?modal=provider&mode=create`
-- View: `?modal=provider&mode=view&id=abc123`
-- Update: `?modal=provider&mode=update&id=abc123`
+### Wizard Pattern
 
-**Benefits**:
-- Deep-linkable (share/bookmark modal states)
-- Browser back/forward works naturally
-- Right-click to open in new tab
-- No state synchronization issues
+Multi-step create/edit forms use step wizards with URL-based state:
 
-**Architecture**:
-1. Global `ModalManager` routes by `modal` param
-2. Feature managers (e.g., `ProviderModalManager`) route by `mode` param
-3. Individual modals use `SlidePanel` which auto-closes by clearing ALL query params
+**Key Features**:
+- Step state via `useSearchParams` (`?step=0`, `?step=1`, etc.)
+- Form data via `useReducer`
+- Browser back/forward works between steps
+- React Query optimistic updates on submit
 
-**Important**: When `SlidePanel` closes (X button or backdrop click), it clears all query parameters from the URL. This ensures clean navigation back to the entity page.
+**Navigation**:
+```typescript
+const [searchParams, setSearchParams] = useSearchParams()
+const step = Number(searchParams.get('step') ?? '0')
+
+const goTo = (n: number) => {
+  setSearchParams({ step: String(n) }, { replace: true })
+}
+```
+
+**Submit Navigation**:
+Always use `{ replace: true }` to prevent back button from returning to wizard:
+
+```typescript
+const handleSubmit = async (data: WizardData) => {
+  await createEntity(data)
+  navigate(`/${companyId}/path/to/list`, { replace: true })
+}
+```
+
+This replaces the wizard in history — clicking back goes to the page before the wizard.
 
 ### UI Standards
 
 **Typography**:
-- Modal titles: Sentence case (`"Detalle del proveedor"`, not `"Detalle Del Proveedor"`)
+- Page titles: Sentence case (`"Detalle del proveedor"`, not `"Detalle Del Proveedor"`)
 - Field labels: `text-xs text-gray-500 font-medium normal-case`
 - Spanish UI, English code (always)
 
@@ -270,9 +275,9 @@ All modals use a **centralized query parameter system** for consistency:
 - **Table rows**: Use the "stretched link" pattern for clickable rows:
   - Row: `className="hover:bg-gray-50 transition-colors relative"`
   - First column link: Add `before:absolute before:inset-0` to stretch over entire row
-  - Actions column: Add `relative z-10` to keep buttons clickable above the stretched link
+  - Actions column: Add `relative z-10` to keep buttons/links clickable
   - Edit action: Must be a `<Link>`, not a button
-  - Delete action: Can be a button (no navigation, just triggers confirmation modal)
+  - Delete action: Can be a button (no navigation, opens confirmation modal)
 
 **Action Buttons**:
 - Edit buttons: `hover:text-blue-600 hover:bg-blue-50`
@@ -280,158 +285,47 @@ All modals use a **centralized query parameter system** for consistency:
 - All delete actions must use `ConfirmModal` (never native `confirm()`)
 - Base color: `text-gray-400` (neutral when not hovered)
 
-**Modal Patterns**:
-- **Error Handling**: All create/update modals must have error state and display
-  - Error state: `const [error, setError] = useState<string | null>(null)`
-  - Error UI: Red box with border at top of form
-  - Clear error before submission: `setError(null)`
-  - Never use `alert()` for errors - always use error state
-- **Pre-fill from Query Params**: Use `useEffect` to read URL params from commands
-  - Example: `/crear-proveedor` command passes `name`, `nit`, etc. as query params
-  - Modal reads params and pre-fills form fields
-- **Loading States**: Show spinner for data fetching, disable buttons during submission
-
 **Example**:
 ```tsx
-// Good: Clickable table row with stretched link pattern
+// Clickable table row with stretched link pattern
 <tbody className="bg-white divide-y divide-gray-200">
   {items.map((item) => (
-    <tr
-      key={item.id}
-      className="hover:bg-gray-50 transition-colors relative"
-    >
-      {/* First column with stretched link */}
+    <tr key={item.id} className="hover:bg-gray-50 transition-colors relative">
       <td className="px-6 py-4">
         <Link
-          to={`/${companyId}/entity?modal=entity&mode=view&id=${item.id}`}
+          to={`/${companyId}/accountancy/providers/${item.id}`}
           className="text-sm font-medium text-gray-900 before:absolute before:inset-0"
         >
           {item.name}
         </Link>
       </td>
-
-      {/* Other columns */}
-      <td className="px-6 py-4">
-        <div className="text-sm text-gray-500">
-          {item.description}
-        </div>
-      </td>
-
-      {/* Actions column - must have z-10 to work above stretched link */}
       <td className="px-6 py-4 relative z-10">
-        <div className="flex gap-2">
-          {/* Edit: Must be Link */}
-          <Link
-            to={`/${companyId}/entity?modal=entity&mode=update&id=${item.id}`}
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
-            <Pencil className="h-4 w-4" />
-          </Link>
-
-          {/* Delete: Button is OK (no navigation) */}
-          <button
-            onClick={() => handleDeleteClick(item.id, item.name)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+        <Link
+          to={`/${companyId}/accountancy/providers/${item.id}/edit`}
+          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+        >
+          <Pencil className="h-4 w-4" />
+        </Link>
+        <button
+          onClick={() => handleDeleteClick(item.id, item.name)}
+          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
       </td>
     </tr>
   ))}
 </tbody>
 
-// Good: Delete with ConfirmModal
-const [deleteConfirm, setDeleteConfirm] = useState<{id: string, name: string} | null>(null)
-
+// Delete confirmation
 <ConfirmModal
   isOpen={!!deleteConfirm}
   onClose={() => setDeleteConfirm(null)}
   onConfirm={handleDeleteConfirm}
-  title="Eliminar entidad"
+  title="Eliminar proveedor"
   message={`¿Estás seguro de que deseas eliminar "${deleteConfirm?.name}"?`}
   variant="danger"
 />
-
-// Good: Back button
-<Button onClick={() => navigate(-1)}>Volver</Button>
-
-// Good: Create modal with error handling and pre-fill
-export function EntityCreateModal() {
-  const navigate = useNavigate()
-  const companyId = useCompanyId()
-  const [searchParams] = useSearchParams()
-  const { createEntity } = useEntities()
-
-  const [name, setName] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  // Pre-fill from query params (passed by command palette)
-  useEffect(() => {
-    const nameParam = searchParams.get('name')
-    if (nameParam) {
-      setName(nameParam)
-    }
-  }, [searchParams])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!name.trim()) {
-      setError('El nombre es requerido')
-      return
-    }
-
-    setError(null) // Clear error before submission
-    setIsSubmitting(true)
-    try {
-      await createEntity({ name: name.trim() })
-      navigate(`/${companyId}/entities`)
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Error al crear entidad'
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <SlidePanel title="Crear entidad">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Error display - red box at top */}
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        <Input
-          label="Nombre"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="ej: Mi Entidad"
-          required
-          autoFocus
-        />
-
-        <div className="flex gap-3 pt-4">
-          <Button type="submit" isLoading={isSubmitting}>
-            Crear
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => navigate(-1)}
-          >
-            Cancelar
-          </Button>
-        </div>
-      </form>
-    </SlidePanel>
-  )
-}
 ```
 
 ## Multi-Company Architecture
@@ -460,15 +354,31 @@ This enables:
 useless-dave/
 ├── client/                           # React SPA
 │   ├── src/
-│   │   ├── components/               # UI components and layouts
+│   │   ├── commands/                 # Entity pages (organized by feature)
+│   │   │   ├── providers/
+│   │   │   │   ├── create/ProviderCreatePage.tsx
+│   │   │   │   ├── view/ProviderViewPage.tsx
+│   │   │   │   ├── update/ProviderEditPage.tsx
+│   │   │   │   ├── list/ProvidersListPage.tsx
+│   │   │   │   └── shared/providerService.ts
+│   │   │   ├── bank-accounts/
+│   │   │   │   ├── create/BankAccountCreatePage.tsx
+│   │   │   │   ├── view/BankAccountViewPage.tsx
+│   │   │   │   ├── update/BankAccountEditPage.tsx
+│   │   │   │   └── shared/bankAccountService.ts
+│   │   │   ├── cost-centers/
+│   │   │   └── accounting-categories/
+│   │   ├── components/               # Shared UI components
+│   │   │   ├── ui/                   # Base components (Currency, MonthPicker, etc.)
+│   │   │   └── wizard/               # Wizard components (StepIndicator, etc.)
 │   │   ├── features/
 │   │   │   ├── auth/                 # Authentication
 │   │   │   ├── commands/             # Command system
-│   │   │   │   ├── commandRegistry.ts  # Centralized command config
+│   │   │   │   ├── commandRegistry.ts  # Command definitions
 │   │   │   │   ├── CommandInterface.tsx
 │   │   │   │   └── components/CommandInput.tsx
 │   │   │   └── company/              # Company management
-│   │   ├── hooks/                    # Custom React hooks
+│   │   ├── hooks/                    # Custom React hooks (useProvider, useBankAccounts)
 │   │   ├── lib/                      # Firebase config, utilities
 │   │   └── types/                    # TypeScript interfaces
 │   └── vite.config.ts
@@ -477,19 +387,20 @@ useless-dave/
 │   └── src/
 │       ├── commands/                 # Entity endpoints
 │       │   ├── accounting-categories/
-│       │   │   ├── service.ts        # Business logic
-│       │   │   ├── routes.ts         # Express routes
-│       │   │   └── types.ts          # Type exports
+│       │   │   ├── service.ts        # Business logic & Firestore ops
+│       │   │   └── routes.ts         # Express routes
 │       │   ├── cost-centers/
-│       │   └── providers/
+│       │   ├── providers/
+│       │   └── bank-accounts/
 │       ├── dev-server.ts             # Main server & route registration
 │       └── lib/                      # Firebase admin, utilities
 │
 ├── shared/                           # Shared types package
-│   └── types/                        # Entity DTOs
+│   └── types/                        # Entity DTOs (used by client & server)
 │       ├── accounting-categories.ts
 │       ├── cost-centers.ts
 │       ├── providers.ts
+│       ├── bank-accounts.ts
 │       └── index.ts
 │
 ├── biome.json                        # Linting configuration
