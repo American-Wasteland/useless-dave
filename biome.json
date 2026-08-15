@@ -35,7 +35,6 @@
       "server/src/**/*.ts",
       "server/*.ts",
       "server/*.js",
-      "!!**/node_modules",
       "!!**/dist",
       "!!**/.firebase"
     ]

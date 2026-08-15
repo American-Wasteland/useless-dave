@@ -33,6 +33,9 @@ export function ProviderEditPage() {
         email: data.email.trim() || undefined,
         phone: data.phone.trim() || undefined,
         address: data.address.trim() || undefined,
+        vatRate: data.vatRate,
+        reteFuenteRate: data.reteFuenteRate,
+        reteIcaRate: data.reteIcaRate,
       },
       files: Object.keys(files).length > 0 ? files : undefined,
     })
@@ -84,6 +87,9 @@ export function ProviderEditPage() {
           phone: provider.phone ?? '',
           rutFile: null,
           bankAccountFile: null,
+          vatRate: provider.vatRate ?? 19,
+          reteFuenteRate: provider.reteFuenteRate ?? 0,
+          reteIcaRate: provider.reteIcaRate ?? 0,
         }}
         existingRutUrl={provider.rutUrl}
         existingBankAccountUrl={provider.bankAccountUrl}

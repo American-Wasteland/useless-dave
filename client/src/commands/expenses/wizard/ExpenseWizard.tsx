@@ -1,28 +1,28 @@
-import type { ProviderType } from '@useless-dave/shared'
 import { Check } from 'lucide-react'
 import { useReducer, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../../../components/ui'
 import { cn } from '../../../lib/utils'
-import { StepContact } from './steps/StepContact'
-import { StepDocuments } from './steps/StepDocuments'
-import { StepIdentity } from './steps/StepIdentity'
-import { StepTaxes } from './steps/StepTaxes'
-import { StepType } from './steps/StepType'
+import type { PaymentStatus } from '../shared/types'
+import { StepAmounts } from './steps/StepAmounts'
+import { StepBasicInfo } from './steps/StepBasicInfo'
+import { StepInvoice } from './steps/StepInvoice'
+import { StepPaymentStatus } from './steps/StepPaymentStatus'
+import { type PaymentData, StepPayments } from './steps/StepPayments'
 
 export interface WizardData {
-  providerType: ProviderType
-  name: string
-  nit: string
-  address: string
-  contactName: string
-  email: string
-  phone: string
-  rutFile: File | null
-  bankAccountFile: File | null
-  vatRate: number
-  reteFuenteRate: number
-  reteIcaRate: number
+  title: string
+  expenseDate: string
+  providerId: string
+  categoryId: string
+  costCenterId: string
+  subtotal: number
+  iva: number
+  reteFuente: number
+  reteIca: number
+  payments: PaymentData[]
+  invoiceFile: File | null
+  paymentStatus: PaymentStatus
 }
 
 type WizardAction = { type: 'update'; payload: Partial<WizardData> }
@@ -31,35 +31,39 @@ function wizardReducer(state: WizardData, action: WizardAction): WizardData {
   return { ...state, ...action.payload }
 }
 
-interface ProviderWizardProps {
+interface ExpenseWizardProps {
   mode: 'create' | 'edit'
   initialData?: Partial<WizardData>
-  existingRutUrl?: string
-  existingBankAccountUrl?: string
   onSubmit: (data: WizardData) => Promise<void>
-  onDeleteDocument?: (doc: 'rut' | 'bankAccount') => Promise<void>
   isSubmitting: boolean
 }
 
-const STEPS = ['Tipo', 'Identificación', 'Contacto', 'Documentos', 'Impuestos']
+const STEPS = ['Info básica', 'Montos', 'Factura', 'Pagos', 'Estado']
 
 function validate(step: number, data: WizardData): string | null {
-  if (step === 1) {
-    if (!data.name.trim()) return 'El nombre es requerido'
-    if (!data.nit.trim()) return 'El NIT es requerido'
+  if (step === 0) {
+    if (!data.title.trim()) return 'El título es requerido'
+    if (!data.expenseDate) return 'La fecha del gasto es requerida'
+    if (!data.providerId.trim()) return 'El proveedor es requerido'
+    if (!data.categoryId.trim()) return 'La categoría es requerida'
+    if (!data.costCenterId.trim()) return 'El centro de costo es requerido'
   }
+  if (step === 1) {
+    if (data.subtotal <= 0) return 'El subtotal debe ser mayor a 0'
+    if (data.iva < 0) return 'El IVA no puede ser negativo'
+    if (data.reteFuente < 0) return 'La reteFuente no puede ser negativa'
+    if (data.reteIca < 0) return 'La reteIca no puede ser negativa'
+  }
+  // Invoice (step 2), payments (step 3), and status (step 4) are optional - no validation needed
   return null
 }
 
-export function ProviderWizard({
+export function ExpenseWizard({
   mode,
   initialData,
-  existingRutUrl,
-  existingBankAccountUrl,
   onSubmit,
-  onDeleteDocument,
   isSubmitting,
-}: ProviderWizardProps) {
+}: ExpenseWizardProps) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const step = Math.min(
@@ -68,18 +72,18 @@ export function ProviderWizard({
   )
 
   const [data, dispatch] = useReducer(wizardReducer, {
-    providerType: 'business',
-    name: '',
-    nit: '',
-    address: '',
-    contactName: '',
-    email: '',
-    phone: '',
-    rutFile: null,
-    bankAccountFile: null,
-    vatRate: 0,
-    reteFuenteRate: 0,
-    reteIcaRate: 0,
+    title: '',
+    expenseDate: new Date().toISOString().split('T')[0],
+    providerId: '',
+    categoryId: '',
+    costCenterId: '',
+    subtotal: 0,
+    iva: 0,
+    reteFuente: 0,
+    reteIca: 0,
+    payments: [],
+    invoiceFile: null,
+    paymentStatus: 'pending',
     ...initialData,
   })
 
@@ -123,9 +127,9 @@ export function ProviderWizard({
   return (
     <div className="space-y-6">
       {/* Step indicator */}
-      <nav className="flex items-center justify-between">
+      <nav className="flex items-center">
         {STEPS.map((label, i) => (
-          <div key={label} className="flex items-center">
+          <div key={label} className="flex items-center flex-1 last:flex-none">
             {(() => {
               const isClickable = i < step || (mode === 'edit' && i > step)
               return (
@@ -165,8 +169,8 @@ export function ProviderWizard({
             {i < STEPS.length - 1 && (
               <div
                 className={cn(
-                  'h-px w-16 mx-2 mb-4',
-                  i < step ? 'bg-primary' : 'bg-border',
+                  'flex-1 h-0.5 mx-2',
+                  i < step ? 'bg-primary' : 'bg-muted',
                 )}
               />
             )}
@@ -176,59 +180,69 @@ export function ProviderWizard({
 
       {/* Step content */}
       <div className="card p-6">
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
-            {error}
-          </div>
-        )}
         {step === 0 && (
-          <StepType
-            value={data.providerType}
-            onChange={(v) => update({ providerType: v })}
-          />
-        )}
-        {step === 1 && <StepIdentity data={data} onChange={update} />}
-        {step === 2 && <StepContact data={data} onChange={update} />}
-        {step === 3 && (
-          <StepDocuments
-            data={data}
-            onChange={update}
-            mode={mode}
-            existingRutUrl={existingRutUrl}
-            existingBankAccountUrl={existingBankAccountUrl}
-            onDeleteDocument={onDeleteDocument}
-          />
-        )}
-        {step === 4 && (
-          <StepTaxes
-            vatRate={data.vatRate}
-            reteFuenteRate={data.reteFuenteRate}
-            reteIcaRate={data.reteIcaRate}
+          <StepBasicInfo
+            title={data.title}
+            expenseDate={data.expenseDate}
+            providerId={data.providerId}
+            categoryId={data.categoryId}
+            costCenterId={data.costCenterId}
             onUpdate={update}
           />
+        )}
+        {step === 1 && (
+          <StepAmounts
+            providerId={data.providerId}
+            subtotal={data.subtotal}
+            iva={data.iva}
+            reteFuente={data.reteFuente}
+            reteIca={data.reteIca}
+            onUpdate={update}
+          />
+        )}
+        {step === 2 && (
+          <StepInvoice invoiceFile={data.invoiceFile} onUpdate={update} />
+        )}
+        {step === 3 && (
+          <StepPayments payments={data.payments} onUpdate={update} />
+        )}
+        {step === 4 && (
+          <StepPaymentStatus
+            paymentStatus={data.paymentStatus}
+            onUpdate={update}
+          />
+        )}
+
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
         )}
       </div>
 
       {/* Navigation */}
-      <div className="flex gap-3">
-        <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+      <div className="flex items-center justify-between">
+        <Button variant="outline" onClick={() => navigate(-1)}>
           Cancelar
         </Button>
-        <div className="flex-1" />
-        {step > 0 && (
-          <Button type="button" variant="outline" onClick={handleBack}>
-            Atrás
-          </Button>
-        )}
-        {isLast ? (
-          <Button type="button" onClick={handleSubmit} isLoading={isSubmitting}>
-            {mode === 'create' ? 'Crear proveedor' : 'Actualizar proveedor'}
-          </Button>
-        ) : (
-          <Button type="button" onClick={handleNext}>
-            Continuar
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {step > 0 && (
+            <Button variant="outline" onClick={handleBack}>
+              Atrás
+            </Button>
+          )}
+          {!isLast ? (
+            <Button onClick={handleNext}>Continuar</Button>
+          ) : (
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Guardando...'
+                : mode === 'create'
+                  ? 'Registrar gasto'
+                  : 'Actualizar gasto'}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

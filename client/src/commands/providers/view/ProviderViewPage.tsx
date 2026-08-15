@@ -116,6 +116,54 @@ export function ProviderViewPage() {
           )}
         </div>
 
+        {/* Tax rates */}
+        <div className="pt-4 border-t border-gray-200 mt-6">
+          <div className="text-xs text-gray-500 font-medium normal-case mb-3">
+            Impuestos y retenciones
+          </div>
+          {!provider.vatRate &&
+          !provider.reteFuenteRate &&
+          !provider.reteIcaRate ? (
+            <div className="text-sm text-gray-500 italic">
+              Sin tasas configuradas
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {provider.vatRate !== undefined && provider.vatRate !== null && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">IVA:</span>
+                  <span className="font-medium text-gray-900">
+                    {provider.vatRate}%
+                  </span>
+                </div>
+              )}
+              {provider.reteFuenteRate !== undefined &&
+                provider.reteFuenteRate !== null && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">ReteFuente:</span>
+                    <span className="font-medium text-gray-900">
+                      {provider.reteFuenteRate}%
+                    </span>
+                  </div>
+                )}
+              {provider.reteIcaRate !== undefined &&
+                provider.reteIcaRate !== null && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">ReteIca:</span>
+                    <span className="font-medium text-gray-900">
+                      {provider.reteIcaRate}‰
+                    </span>
+                  </div>
+                )}
+              {provider.reteFuenteRate === 0 && provider.reteIcaRate === 0 && (
+                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  🔖 Autorretenedor
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Documents */}
         {(provider.rutUrl || provider.bankAccountUrl) && (
           <div className="pt-4 border-t border-gray-200 mt-6">

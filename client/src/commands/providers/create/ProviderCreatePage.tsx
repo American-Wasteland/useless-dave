@@ -24,6 +24,9 @@ export function ProviderCreatePage() {
         email: data.email.trim() || undefined,
         phone: data.phone.trim() || undefined,
         address: data.address.trim() || undefined,
+        vatRate: data.vatRate,
+        reteFuenteRate: data.reteFuenteRate,
+        reteIcaRate: data.reteIcaRate,
       },
       Object.keys(files).length > 0 ? files : undefined,
     )

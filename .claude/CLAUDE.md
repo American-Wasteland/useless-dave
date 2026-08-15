@@ -67,6 +67,16 @@ Each entity has a dedicated service and routes:
 - `DELETE /:id/statements/:month` - Delete a statement by month
 - `GET /:id/movements` - List movements (sorted by date desc)
 
+**Expenses** (`/api/companies/:companyId/expenses`)
+- `GET /` - List all
+- `POST /` - Create with invoice + payments atomically (`multipart/form-data`: all fields + `invoice` file + `payments` JSON + `payment-proof-{index}` files)
+- `GET /:id` - Get by ID (includes payments subcollection)
+- `PATCH /:id` - Update (optionally replace invoice)
+- `DELETE /:id` - Delete (also removes payments + files)
+- `GET /search/:query` - Search by title
+- `POST /:id/payments` - Add payment (`multipart/form-data`: `bankAccountId`, `amount`, `date`, `notes`, optional `proof` file)
+- `DELETE /:id/payments/:paymentId` - Delete payment (restores bank balance)
+
 ### Adding a New Entity
 
 1. **Create shared types** in `shared/types/{entity}.ts`:
@@ -326,6 +336,91 @@ The bank account view page (`BankAccountViewPage`) is a **layout route** with ne
 - **`<Currency amount={n} />`** — Renders COP amounts with superscript cents. Use instead of `formatCurrency()` in JSX. Import from `client/src/components/ui`.
 - **`<MonthPicker value onChange label />`** — Month/year picker (Radix Popover + custom grid). Outputs `YYYY-MM`. Default to previous month. Import from `client/src/components/ui`.
 
+## Expenses
+
+### Data Model
+
+`Expense` stores core financial data. Payments are in a subcollection. Bank account balances are updated atomically when payments are created/deleted.
+
+```typescript
+interface Expense {
+  id: string
+  title: string
+  providerId: string
+  categoryId: string
+  costCenterId: string        // Required
+
+  // Colombian tax system
+  subtotal: number
+  iva: number                 // VAT
+  reteFuente?: number         // Income tax withholding
+  reteIca?: number            // Industry and commerce tax withholding
+
+  invoiceUrl?: string         // Optional PDF or image (can be added later)
+
+  payments: ExpensePayment[]  // Populated from subcollection on read
+  paymentStatus: 'pending' | 'partial' | 'paid'
+
+  expenseDate: string         // ISO date string
+  createdAt: string
+  updatedAt: string
+}
+
+interface ExpensePayment {
+  id: string
+  bankAccountId: string
+  amount: number
+  date: string
+  notes?: string
+  proofUrl?: string           // Optional PDF or image
+  createdAt: string
+}
+```
+
+### Creation Wizard
+
+Expenses use a 5-step wizard (`client/src/commands/expenses/wizard/ExpenseWizard.tsx`):
+
+1. **Info básica** — Title, date, provider, cost center, category
+2. **Montos** — Subtotal (required), IVA, reteFuente, reteIca (auto-calculated based on provider rates)
+3. **Factura** — Optional invoice upload (PDF or image)
+4. **Pagos** — Optional payments with bank account, amount, date, notes, and proof file
+5. **Estado** — Manual payment status selection (pending/partial/paid)
+
+**Atomic Creation**: All data (expense + invoice + payments + proof files) is created in a single server-side operation. The server:
+1. Creates the expense document
+2. Uploads invoice file to Storage (if provided)
+3. Creates payment documents in subcollection
+4. Uploads payment proof files (if provided)
+5. Updates bank account balances for all payments
+
+### File Upload Pattern
+
+The wizard uses `FormData` with `multipart/form-data`:
+- `invoice` — Single file field for invoice
+- `payments` — JSON string with array of payment data
+- `payment-proof-0`, `payment-proof-1`, etc. — Indexed file fields for payment proofs
+
+**Supported file types**: PDF, JPG, PNG, WebP
+
+Server uses `multer` with `upload.any()` to accept dynamic field names.
+
+### Key Rules
+
+- **Collection names**: All Firestore collections use **camelCase** (e.g., `bankAccounts`, not `bank-accounts`)
+- **Required fields**: Step 1 fields (title, date, provider, cost center, category) and subtotal use HTML5 `required` attribute
+- **Firestore undefined**: Use conditional spread to avoid undefined fields: `...(invoiceFile && { invoiceUrl })`
+- **Bank balance updates**: Payments automatically debit the selected bank account's `currentBalance`
+- **Payment status**: Can be set manually in wizard or auto-calculated based on `amountToPay` vs `totalPaid`
+
+### Routes
+
+```
+/:companyId/accountancy/expenses          → ExpenseListPage
+/:companyId/accountancy/expenses/create   → ExpenseCreatePage (wizard)
+/:companyId/accountancy/expenses/:id      → ExpenseViewPage (includes payment history)
+```
+
 ## Entity Routes
 
 Each entity has dedicated pages — no modals or slide panels.
@@ -336,6 +431,7 @@ Each entity has dedicated pages — no modals or slide panels.
 | Bank Accounts | `/accountancy/bank-accounts` | `.../create` | `.../:id` | `.../:id/edit` |
 | Cost Centers | `/accountancy/cost-centers` | `.../create` | — | `.../:id/edit` |
 | Categories | `/accountancy/categories` | `.../create` | — | inline in list |
+| Expenses | `/accountancy/expenses` | `.../create` | `.../:id` | — |
 
 ### Wizard Pattern
 

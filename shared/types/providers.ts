@@ -16,6 +16,13 @@ export interface Provider extends Entity {
   address?: string
   rutUrl?: string // Firebase Storage URL for RUT document (PDF)
   bankAccountUrl?: string // Firebase Storage URL for bank account document (PDF)
+
+  // Tax rates
+  vatRate?: number // VAT/IVA percentage (e.g., 19 = 19%)
+
+  // Tax withholding rates (if both 0 or undefined, provider is autorretenedor)
+  reteFuenteRate?: number // Percentage (e.g., 4 = 4%)
+  reteIcaRate?: number // Per thousand (e.g., 9.66 = 9.66/1000)
 }
 
 export interface CreateProviderInput {
@@ -28,6 +35,9 @@ export interface CreateProviderInput {
   address?: string
   rutUrl?: string
   bankAccountUrl?: string
+  vatRate?: number
+  reteFuenteRate?: number
+  reteIcaRate?: number
 }
 
 export interface UpdateProviderInput {
@@ -40,4 +50,7 @@ export interface UpdateProviderInput {
   address?: string
   rutUrl?: string
   bankAccountUrl?: string
+  vatRate?: number
+  reteFuenteRate?: number
+  reteIcaRate?: number
 }

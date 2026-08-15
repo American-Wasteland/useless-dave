@@ -103,6 +103,9 @@ export class ProviderService {
       address: data.address || null,
       rutUrl: null,
       bankAccountUrl: null,
+      vatRate: data.vatRate ?? null,
+      reteFuenteRate: data.reteFuenteRate ?? null,
+      reteIcaRate: data.reteIcaRate ?? null,
       createdAt: new Date(),
     })
 
@@ -245,20 +248,5 @@ export class ProviderService {
         provider.nit.includes(normalized) ||
         provider.email?.toLowerCase().includes(normalized),
     )
-  }
-
-  async findByNit(nit: string): Promise<Provider | null> {
-    const snapshot = await this.collection
-      .where('nit', '==', nit)
-      .limit(1)
-      .get()
-    if (snapshot.empty) return null
-    const doc = snapshot.docs[0]
-    return {
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data()?.createdAt?.toDate().toISOString(),
-      updatedAt: doc.data()?.updatedAt?.toDate().toISOString(),
-    } as Provider
   }
 }

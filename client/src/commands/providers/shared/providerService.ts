@@ -30,6 +30,12 @@ export async function createProvider(
   if (data.email) formData.append('email', data.email)
   if (data.phone) formData.append('phone', data.phone)
   if (data.address) formData.append('address', data.address)
+  if (data.vatRate !== undefined)
+    formData.append('vatRate', String(data.vatRate))
+  if (data.reteFuenteRate !== undefined)
+    formData.append('reteFuenteRate', String(data.reteFuenteRate))
+  if (data.reteIcaRate !== undefined)
+    formData.append('reteIcaRate', String(data.reteIcaRate))
   if (files?.rut) formData.append('rut', files.rut)
   if (files?.bankAccount) formData.append('bankAccount', files.bankAccount)
 
@@ -68,6 +74,12 @@ export async function updateProvider(
     if (data.email) formData.append('email', data.email)
     if (data.phone) formData.append('phone', data.phone)
     if (data.address) formData.append('address', data.address)
+    if (data.vatRate !== undefined)
+      formData.append('vatRate', String(data.vatRate))
+    if (data.reteFuenteRate !== undefined)
+      formData.append('reteFuenteRate', String(data.reteFuenteRate))
+    if (data.reteIcaRate !== undefined)
+      formData.append('reteIcaRate', String(data.reteIcaRate))
     // Add file URLs if setting to null
     if (data.rutUrl === null) formData.append('rutUrl', 'null')
     if (data.bankAccountUrl === null) formData.append('bankAccountUrl', 'null')
@@ -117,14 +129,5 @@ export async function searchProviders(
 ): Promise<Provider[]> {
   return apiRequest<Provider[]>(
     `/companies/${companyId}/providers/search/${encodeURIComponent(query)}`,
-  )
-}
-
-export async function findProviderByNit(
-  companyId: string,
-  nit: string,
-): Promise<Provider> {
-  return apiRequest<Provider>(
-    `/companies/${companyId}/providers/nit/${encodeURIComponent(nit)}`,
   )
 }

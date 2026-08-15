@@ -32,6 +32,7 @@ export interface CommandDefinition {
 import { accountingCategoryCommands } from '../../commands/accounting-categories'
 import { bankAccountCommands } from '../../commands/bank-accounts'
 import { costCenterCommands } from '../../commands/cost-centers'
+import { expenseCommands } from '../../commands/expenses'
 import { providerCommands } from '../../commands/providers'
 
 // Centralized command registry - commands are defined in their own packages
@@ -39,6 +40,7 @@ export const COMMANDS: CommandDefinition[] = [
   ...accountingCategoryCommands,
   ...bankAccountCommands,
   ...costCenterCommands,
+  ...expenseCommands,
   ...providerCommands,
   // Add more command collections here as you expand
 ]

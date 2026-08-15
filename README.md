@@ -29,6 +29,10 @@ All data operations go through server-side REST endpoints. The client never acce
   - `POST /:id/statements` - Upload a statement PDF (multipart/form-data)
   - `DELETE /:id/statements/:month` - Delete a statement by month (`YYYY-MM`)
   - `GET /:id/movements` - List movements (sorted by date desc)
+- `/api/companies/:companyId/expenses` - Expense CRUD with payments
+  - `POST /` - Create expense with invoice + payments atomically (multipart/form-data)
+  - `POST /:id/payments` - Add payment to expense (updates bank balance)
+  - `DELETE /:id/payments/:paymentId` - Delete payment (restores bank balance)
 
 **Server Structure** (per entity):
 - **Service** - Business logic (`server/src/commands/{entity}/service.ts`)
@@ -61,7 +65,8 @@ See `server/src/dev-server.ts` for full endpoint list.
 - **Multi-Company Support** - Users can create and belong to multiple companies with isolated data
 - **Interactive Command System** - Command palette with direct navigation to dedicated pages
 - **Spanish UI, English Code** - User-facing in Spanish, codebase in English
-- **Bank Accounts** - Track accounts with balance, movements, and monthly statement PDFs
+- **Expense Management** - Track expenses with Colombian tax system (IVA, reteFuente, reteIca), invoice uploads, and payment tracking
+- **Bank Accounts** - Track accounts with balance, movements, and monthly statement PDFs (auto-updated when payments are recorded)
 - **Step Wizards** - Multi-step forms with browser back/forward support
 
 ## Command System
@@ -90,6 +95,7 @@ User selects command → Enter
 - `/crear-proveedor` - Create provider
 - `/buscar-proveedor` - Search providers (with optional query)
 - `/crear-cuenta-bancaria` - Create bank account
+- `/registrar-gasto` - Create expense (5-step wizard)
 
 ### Search Commands
 
@@ -108,6 +114,37 @@ Some commands support an optional search query. When selected, the command waits
 
 The target page receives `?q=<query>` and pre-fills its search field.
 
+## Expense Management
+
+Expenses support the **Colombian tax system** with built-in handling for:
+- **IVA** (VAT) - Auto-calculated based on provider's VAT rate
+- **ReteFuente** (Income tax withholding) - Auto-calculated based on provider's rate
+- **ReteIca** (Industry and commerce tax withholding) - Auto-calculated per-thousand rate
+
+### Creation Wizard
+
+Expenses are created through a 5-step wizard:
+
+1. **Info básica** - Title, date, provider, cost center, category (all required)
+2. **Montos** - Subtotal (required), IVA, reteFuente, reteIca (auto-calculated with override option)
+3. **Factura** - Optional invoice upload (PDF or image: JPG, PNG, WebP)
+4. **Pagos** - Optional initial payments with bank account, amount, date, notes, and proof files
+5. **Estado** - Manual payment status selection (pending/partial/paid)
+
+### Key Features
+
+- **Atomic Creation** - Single server operation creates expense + uploads files + creates payments + updates bank balances
+- **Payment Tracking** - Multiple payments per expense with optional proof files (PDF or images)
+- **Bank Integration** - Bank account balances automatically update when payments are added/deleted
+- **File Support** - Invoices and payment proofs can be PDF or images (JPG, PNG, WebP)
+
+### Technical Notes
+
+- Expenses are stored in Firestore at `companies/{companyId}/expenses/{expenseId}`
+- Payments are stored in a subcollection: `expenses/{expenseId}/payments/{paymentId}`
+- All Firestore collections use **camelCase** (e.g., `bankAccounts`, not `bank-accounts`)
+- File uploads use `multipart/form-data` with dynamic field names (`payment-proof-0`, `payment-proof-1`, etc.)
+
 ### Entity Routes
 
 Each entity uses dedicated pages for all CRUD operations:
@@ -116,6 +153,7 @@ Each entity uses dedicated pages for all CRUD operations:
 |--------|------|--------|------|------|
 | Providers | `/accountancy/providers` | `.../create` | `.../:id` | `.../:id/edit` |
 | Bank Accounts | `/accountancy/bank-accounts` | `.../create` | `.../:id` | `.../:id/edit` |
+| Expenses | `/accountancy/expenses` | `.../create` | `.../:id` | — |
 | Cost Centers | `/accountancy/cost-centers` | `.../create` | — | `.../:id/edit` |
 | Categories | `/accountancy/categories` | `.../create` | — | inline edit |
 
@@ -366,6 +404,11 @@ useless-dave/
 │   │   │   │   ├── view/BankAccountViewPage.tsx
 │   │   │   │   ├── update/BankAccountEditPage.tsx
 │   │   │   │   └── shared/bankAccountService.ts
+│   │   │   ├── expenses/
+│   │   │   │   ├── create/ExpenseCreatePage.tsx
+│   │   │   │   ├── view/ExpenseViewPage.tsx
+│   │   │   │   ├── wizard/ExpenseWizard.tsx   # 5-step creation wizard
+│   │   │   │   └── shared/expenseService.ts
 │   │   │   ├── cost-centers/
 │   │   │   └── accounting-categories/
 │   │   ├── components/               # Shared UI components
@@ -391,7 +434,8 @@ useless-dave/
 │       │   │   └── routes.ts         # Express routes
 │       │   ├── cost-centers/
 │       │   ├── providers/
-│       │   └── bank-accounts/
+│       │   ├── bank-accounts/
+│       │   └── expenses/
 │       ├── dev-server.ts             # Main server & route registration
 │       └── lib/                      # Firebase admin, utilities
 │
@@ -401,6 +445,7 @@ useless-dave/
 │       ├── cost-centers.ts
 │       ├── providers.ts
 │       ├── bank-accounts.ts
+│       ├── expenses.ts
 │       └── index.ts
 │
 ├── biome.json                        # Linting configuration

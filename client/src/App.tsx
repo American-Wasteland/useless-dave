@@ -11,6 +11,12 @@ import { StatementsTab } from './commands/bank-accounts/view/StatementsTab'
 import { ListCostCentersPage } from './commands/cost-centers'
 import { CostCenterCreatePage } from './commands/cost-centers/create/CostCenterCreatePage'
 import { CostCenterEditPage } from './commands/cost-centers/update/CostCenterEditPage'
+import { ExpenseCreatePage } from './commands/expenses/create/ExpenseCreatePage'
+import { ListExpensesPage } from './commands/expenses/list'
+import { ExpenseEditPage } from './commands/expenses/update/ExpenseEditPage'
+import { ExpenseViewPage } from './commands/expenses/view/ExpenseViewPage'
+import { GeneralTab } from './commands/expenses/view/tabs/GeneralTab'
+import { PaymentsTab } from './commands/expenses/view/tabs/PaymentsTab'
 import { ListProvidersPage } from './commands/providers'
 import { ProviderCreatePage } from './commands/providers/create/ProviderCreatePage'
 import { ProviderEditPage } from './commands/providers/update/ProviderEditPage'
@@ -105,6 +111,25 @@ function App() {
             <Route
               path="accountancy/cost-centers/:costCenterId/edit"
               element={<CostCenterEditPage />}
+            />
+
+            {/* Expenses */}
+            <Route path="accountancy/expenses" element={<ListExpensesPage />} />
+            <Route
+              path="accountancy/expenses/create"
+              element={<ExpenseCreatePage />}
+            />
+            <Route
+              path="accountancy/expenses/:expenseId"
+              element={<ExpenseViewPage />}
+            >
+              <Route index element={<Navigate to="general" replace />} />
+              <Route path="general" element={<GeneralTab />} />
+              <Route path="payments" element={<PaymentsTab />} />
+            </Route>
+            <Route
+              path="accountancy/expenses/:expenseId/edit"
+              element={<ExpenseEditPage />}
             />
 
             {/* Providers */}

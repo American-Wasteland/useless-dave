@@ -73,8 +73,18 @@ export function registerProviderRoutes(
     ]),
     async (req: Request, res: Response) => {
       try {
-        const { name, nit, providerType, contactName, email, phone, address } =
-          req.body || {}
+        const {
+          name,
+          nit,
+          providerType,
+          contactName,
+          email,
+          phone,
+          address,
+          vatRate,
+          reteFuenteRate,
+          reteIcaRate,
+        } = req.body || {}
 
         if (!name || !nit || !providerType) {
           res
@@ -104,6 +114,11 @@ export function registerProviderRoutes(
             email,
             phone,
             address,
+            vatRate: vatRate !== undefined ? Number(vatRate) : undefined,
+            reteFuenteRate:
+              reteFuenteRate !== undefined ? Number(reteFuenteRate) : undefined,
+            reteIcaRate:
+              reteIcaRate !== undefined ? Number(reteIcaRate) : undefined,
           },
           {
             rut: files?.rut?.[0],
@@ -142,6 +157,9 @@ export function registerProviderRoutes(
           address,
           rutUrl,
           bankAccountUrl,
+          vatRate,
+          reteFuenteRate,
+          reteIcaRate,
         } = req.body
 
         const service = new ProviderService(
@@ -168,6 +186,11 @@ export function registerProviderRoutes(
             address,
             rutUrl: rutUrl === 'null' ? null : rutUrl,
             bankAccountUrl: bankAccountUrl === 'null' ? null : bankAccountUrl,
+            vatRate: vatRate !== undefined ? Number(vatRate) : undefined,
+            reteFuenteRate:
+              reteFuenteRate !== undefined ? Number(reteFuenteRate) : undefined,
+            reteIcaRate:
+              reteIcaRate !== undefined ? Number(reteIcaRate) : undefined,
           },
           {
             rut: files?.rut?.[0],
@@ -217,28 +240,6 @@ export function registerProviderRoutes(
         )
         const providers = await service.search(req.params.query as string)
         res.json(providers)
-      } catch (error) {
-        res.status(500).json({ error: String(error) })
-      }
-    },
-  )
-
-  // Find provider by NIT
-  router.get(
-    '/companies/:companyId/providers/nit/:nit',
-    async (req: Request, res: Response) => {
-      try {
-        const service = new ProviderService(
-          db,
-          storage,
-          req.params.companyId as string,
-        )
-        const provider = await service.findByNit(req.params.nit as string)
-        if (!provider) {
-          res.status(404).json({ error: 'Provider not found' })
-          return
-        }
-        res.json(provider)
       } catch (error) {
         res.status(500).json({ error: String(error) })
       }
