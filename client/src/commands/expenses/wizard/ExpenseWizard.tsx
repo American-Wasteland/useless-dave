@@ -14,8 +14,11 @@ export interface WizardData {
   title: string
   expenseDate: string
   providerId: string
+  providerName: string
   categoryId: string
+  accountancyCategoryName: string
   costCenterId: string
+  costCenterName: string
   subtotal: number
   iva: number
   reteFuente: number
@@ -75,8 +78,11 @@ export function ExpenseWizard({
     title: '',
     expenseDate: new Date().toISOString().split('T')[0],
     providerId: '',
+    providerName: '',
     categoryId: '',
+    accountancyCategoryName: '',
     costCenterId: '',
+    costCenterName: '',
     subtotal: 0,
     iva: 0,
     reteFuente: 0,
@@ -185,8 +191,11 @@ export function ExpenseWizard({
             title={data.title}
             expenseDate={data.expenseDate}
             providerId={data.providerId}
+            providerName={data.providerName}
             categoryId={data.categoryId}
+            accountancyCategoryName={data.accountancyCategoryName}
             costCenterId={data.costCenterId}
+            costCenterName={data.costCenterName}
             onUpdate={update}
           />
         )}

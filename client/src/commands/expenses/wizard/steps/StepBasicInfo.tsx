@@ -1,20 +1,37 @@
-import { SearchableSelect } from '../../../../components/ui'
-import { useCostCenters } from '../../../../hooks/useCostCenters'
-import { useListCategories } from '../../../accounting-categories/list/useListCategories'
-import { useListProviders } from '../../../providers/list/useListProviders'
+import type { SearchPickerOption } from '../../../../components/ui'
+import { SearchPickerModal } from '../../../../components/ui'
+import { useCompanyId } from '../../../../hooks/useCompanyId'
+import {
+  getAccountingCategories,
+  searchAccountingCategories,
+} from '../../../accounting-categories/shared/categoryService'
+import {
+  getCostCenters,
+  searchCostCenters,
+} from '../../../cost-centers/shared/costCenterService'
+import {
+  getProviders,
+  searchProviders,
+} from '../../../providers/shared/providerService'
 
 interface StepBasicInfoProps {
   title: string
   expenseDate: string
   providerId: string
+  providerName: string
   categoryId: string
+  accountancyCategoryName: string
   costCenterId: string
+  costCenterName: string
   onUpdate: (data: {
     title?: string
     expenseDate?: string
     providerId?: string
+    providerName?: string
     categoryId?: string
+    accountancyCategoryName?: string
     costCenterId?: string
+    costCenterName?: string
   }) => void
 }
 
@@ -22,29 +39,58 @@ export function StepBasicInfo({
   title,
   expenseDate,
   providerId,
+  providerName,
   categoryId,
+  accountancyCategoryName,
   costCenterId,
+  costCenterName,
   onUpdate,
 }: StepBasicInfoProps) {
-  const { providers, isLoading: isLoadingProviders } = useListProviders()
-  const { categories, isLoading: isLoadingCategories } = useListCategories()
-  const { costCenters, isLoading: isLoadingCostCenters } = useCostCenters()
+  const companyId = useCompanyId()
 
-  const providerOptions = providers.map((p) => ({
-    value: p.id,
-    label: p.name,
-    subtitle: `NIT: ${p.nit}`,
-  }))
+  const searchProviderOptions = async (
+    query: string,
+  ): Promise<SearchPickerOption[]> => {
+    const results = await searchProviders(companyId!, query)
+    return results.map((p) => ({
+      value: p.id,
+      label: p.name,
+      subtitle: `NIT: ${p.nit}`,
+    }))
+  }
 
-  const categoryOptions = categories.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }))
+  const fetchAllProviders = async (): Promise<SearchPickerOption[]> => {
+    const results = await getProviders(companyId!)
+    return results.map((p) => ({
+      value: p.id,
+      label: p.name,
+      subtitle: `NIT: ${p.nit}`,
+    }))
+  }
 
-  const costCenterOptions = costCenters.map((cc) => ({
-    value: cc.id,
-    label: cc.name,
-  }))
+  const searchCategoryOptions = async (
+    query: string,
+  ): Promise<SearchPickerOption[]> => {
+    const results = await searchAccountingCategories(companyId!, query)
+    return results.map((c) => ({ value: c.id, label: c.name }))
+  }
+
+  const fetchAllCategories = async (): Promise<SearchPickerOption[]> => {
+    const results = await getAccountingCategories(companyId!)
+    return results.map((c) => ({ value: c.id, label: c.name }))
+  }
+
+  const searchCostCenterOptions = async (
+    query: string,
+  ): Promise<SearchPickerOption[]> => {
+    const results = await searchCostCenters(companyId!, query)
+    return results.map((cc) => ({ value: cc.id, label: cc.name }))
+  }
+
+  const fetchAllCostCenters = async (): Promise<SearchPickerOption[]> => {
+    const results = await getCostCenters(companyId!)
+    return results.map((cc) => ({ value: cc.id, label: cc.name }))
+  }
 
   return (
     <div className="space-y-4">
@@ -83,31 +129,49 @@ export function StepBasicInfo({
         />
       </div>
 
-      <SearchableSelect
+      <SearchPickerModal
         label="Proveedor"
         value={providerId}
-        onChange={(value) => onUpdate({ providerId: value })}
-        options={providerOptions}
-        placeholder="Seleccionar proveedor..."
-        isLoading={isLoadingProviders}
+        selectedLabel={providerName}
+        onSearch={searchProviderOptions}
+        onFetchAll={fetchAllProviders}
+        onSelect={(option) =>
+          onUpdate({ providerId: option.value, providerName: option.label })
+        }
+        placeholder="Buscar proveedor..."
+        searchPlaceholder="Nombre, NIT o razón social"
+        modalTitle="Seleccionar proveedor"
       />
 
-      <SearchableSelect
+      <SearchPickerModal
         label="Centro de costo"
         value={costCenterId}
-        onChange={(value) => onUpdate({ costCenterId: value })}
-        options={costCenterOptions}
-        placeholder="Seleccionar centro de costo..."
-        isLoading={isLoadingCostCenters}
+        selectedLabel={costCenterName}
+        onSearch={searchCostCenterOptions}
+        onFetchAll={fetchAllCostCenters}
+        onSelect={(option) =>
+          onUpdate({ costCenterId: option.value, costCenterName: option.label })
+        }
+        placeholder="Buscar centro de costo..."
+        searchPlaceholder="Nombre del centro de costo"
+        modalTitle="Seleccionar centro de costo"
       />
 
-      <SearchableSelect
+      <SearchPickerModal
         label="Categoría contable"
         value={categoryId}
-        onChange={(value) => onUpdate({ categoryId: value })}
-        options={categoryOptions}
-        placeholder="Seleccionar categoría..."
-        isLoading={isLoadingCategories}
+        selectedLabel={accountancyCategoryName}
+        onSearch={searchCategoryOptions}
+        onFetchAll={fetchAllCategories}
+        onSelect={(option) =>
+          onUpdate({
+            categoryId: option.value,
+            accountancyCategoryName: option.label,
+          })
+        }
+        placeholder="Buscar categoría..."
+        searchPlaceholder="Nombre de la categoría"
+        modalTitle="Seleccionar categoría contable"
       />
     </div>
   )

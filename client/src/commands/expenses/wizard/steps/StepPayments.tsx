@@ -246,24 +246,6 @@ function AddPaymentInline({
         />
       </div>
 
-      {/* Notes */}
-      <div>
-        <label
-          htmlFor="inline-payment-notes"
-          className="text-xs text-gray-500 font-medium normal-case block mb-1"
-        >
-          Notas <span className="text-gray-400 font-normal">- Opcional</span>
-        </label>
-        <textarea
-          id="inline-payment-notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Observaciones sobre el pago"
-          rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
-        />
-      </div>
-
       {/* Proof PDF or Image */}
       <div>
         <label
@@ -328,6 +310,24 @@ function AddPaymentInline({
             </button>
           </div>
         )}
+      </div>
+
+      {/* Notes */}
+      <div>
+        <label
+          htmlFor="inline-payment-notes"
+          className="text-xs text-gray-500 font-medium normal-case block mb-1"
+        >
+          Notas <span className="text-gray-400 font-normal">- Opcional</span>
+        </label>
+        <textarea
+          id="inline-payment-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Observaciones sobre el pago"
+          rows={5}
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+        />
       </div>
 
       {/* Actions */}

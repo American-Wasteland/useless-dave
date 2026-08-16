@@ -44,7 +44,7 @@ export function StepPaymentStatus({
               key={option.value}
               className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                 paymentStatus === option.value
-                  ? 'border-primary bg-blue-50'
+                  ? 'border-secondary bg-secondary/5'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -54,7 +54,7 @@ export function StepPaymentStatus({
                 value={option.value}
                 checked={paymentStatus === option.value}
                 onChange={() => onUpdate({ paymentStatus: option.value })}
-                className="mt-0.5 h-4 w-4 text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 accent-secondary focus:ring-secondary"
               />
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">
