@@ -147,14 +147,32 @@ export class ExpenseService {
   }
 
   /**
-   * List all expenses (sorted by expenseDate desc)
+   * List expenses sorted by expenseDate desc, optionally filtered by date range.
+   * Both from and to are inclusive YYYY-MM-DD strings.
    */
-  async list(): Promise<Expense[]> {
-    const snapshot = await this.collection.orderBy('expenseDate', 'desc').get()
-    return snapshot.docs.map((doc) => ({
+  async list(options?: {
+    from?: string
+    to?: string
+    search?: string
+  }): Promise<Expense[]> {
+    let query: FirebaseFirestore.Query = this.collection
+    if (options?.from) {
+      query = query.where('expenseDate', '>=', options.from)
+    }
+    if (options?.to) {
+      query = query.where('expenseDate', '<=', options.to)
+    }
+    query = query.orderBy('expenseDate', 'desc')
+    const snapshot = await query.get()
+    const expenses = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...(doc.data() as Omit<Expense, 'id'>),
     }))
+    if (options?.search) {
+      const lower = options.search.toLowerCase()
+      return expenses.filter((e) => e.title.toLowerCase().includes(lower))
+    }
+    return expenses
   }
 
   /**

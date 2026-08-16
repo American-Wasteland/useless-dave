@@ -28,7 +28,12 @@ export function registerExpenseRoutes(
           storage,
           req.params.companyId as string,
         )
-        const expenses = await service.list()
+        const { from, to, q } = req.query as {
+          from?: string
+          to?: string
+          q?: string
+        }
+        const expenses = await service.list({ from, to, search: q })
         res.json(expenses)
       } catch (error) {
         res.status(500).json({ error: String(error) })

@@ -413,6 +413,48 @@ Server uses `multer` with `upload.any()` to accept dynamic field names.
 - **Bank balance updates**: Payments automatically debit the selected bank account's `currentBalance`
 - **Payment status**: Can be set manually in wizard or auto-calculated based on `amountToPay` vs `totalPaid`
 
+### List Page
+
+**Columns**: Fecha · Título (provider name as subtitle) · Montos (total + "A pagar" stacked) · Estado · Acciones (invoice link if `invoiceUrl` exists, edit, delete)
+
+**Filters** — conjunctive, both server-side, state lives in `useSearchParams` (URL-shareable):
+- `?from=YYYY-MM-DD&to=YYYY-MM-DD` — Firestore `where` range on `expenseDate` (only matching docs read)
+- `?q=texto` — text search applied in-memory on the date-filtered set; debounced 400ms before URL write
+
+**Quick-range pills**: Este mes · 30 días · 3 meses · 6 meses · Este año. Active pill = `bg-gray-900 text-white` + `<Loader2 animate-spin>` while `isFetching`. Default = current month.
+
+**Smooth transitions**: `placeholderData: keepPreviousData` on the list query keeps old data visible while new fetch runs. Use `isFetching` (not `isLoading`) for the in-flight spinner.
+
+**URL filter pattern** (reuse for other filterable lists):
+```tsx
+const [searchParams, setSearchParams] = useSearchParams()
+const from = searchParams.get('from') ?? defaultRange.from
+const q = searchParams.get('q') ?? ''
+const [inputQuery, setInputQuery] = useState(q)
+
+// Debounce text search → URL
+useEffect(() => {
+  const t = setTimeout(() => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      inputQuery.trim() ? next.set('q', inputQuery.trim()) : next.delete('q')
+      return next
+    }, { replace: true })
+  }, 400)
+  return () => clearTimeout(t)
+}, [inputQuery, setSearchParams])
+
+// Date range → URL immediately
+const setDateRange = (range: { from: string; to: string }) =>
+  setSearchParams((prev) => {
+    const next = new URLSearchParams(prev)
+    next.set('from', range.from); next.set('to', range.to)
+    return next
+  }, { replace: true })
+```
+
+**`expenseDate` format**: stored as `YYYY-MM-DD` (from `<input type="date">`), so Firestore string comparison works directly for range queries.
+
 ### Routes
 
 ```

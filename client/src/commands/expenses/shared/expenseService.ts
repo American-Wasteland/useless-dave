@@ -8,8 +8,18 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
-export async function getExpenses(companyId: string): Promise<Expense[]> {
-  return apiRequest<Expense[]>(`/companies/${companyId}/expenses`)
+export async function getExpenses(
+  companyId: string,
+  options?: { from?: string; to?: string; search?: string },
+): Promise<Expense[]> {
+  const params = new URLSearchParams()
+  if (options?.from) params.set('from', options.from)
+  if (options?.to) params.set('to', options.to)
+  if (options?.search) params.set('q', options.search)
+  const qs = params.toString()
+  return apiRequest<Expense[]>(
+    `/companies/${companyId}/expenses${qs ? `?${qs}` : ''}`,
+  )
 }
 
 export async function getExpenseById(

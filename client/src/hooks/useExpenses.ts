@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import * as expenseService from '../commands/expenses/shared/expenseService'
 import type {
   AddPaymentInput,
@@ -11,7 +16,14 @@ import { useCompanyId } from './useCompanyId'
 export const expenseKeys = {
   all: ['expenses'] as const,
   lists: () => [...expenseKeys.all, 'list'] as const,
-  list: (companyId: string) => [...expenseKeys.lists(), companyId] as const,
+  list: (companyId: string, from?: string, to?: string, search?: string) =>
+    [
+      ...expenseKeys.lists(),
+      companyId,
+      from ?? '',
+      to ?? '',
+      search ?? '',
+    ] as const,
   detail: (companyId: string, id: string) =>
     [...expenseKeys.all, 'detail', companyId, id] as const,
 }
@@ -27,14 +39,24 @@ export async function getExpense(
   }
 }
 
-export function useExpenses() {
+export function useExpenses(options?: {
+  from?: string
+  to?: string
+  search?: string
+}) {
   const companyId = useCompanyId()
   const queryClient = useQueryClient()
 
   const query = useQuery({
-    queryKey: expenseKeys.list(companyId || ''),
-    queryFn: () => expenseService.getExpenses(companyId!),
+    queryKey: expenseKeys.list(
+      companyId || '',
+      options?.from,
+      options?.to,
+      options?.search,
+    ),
+    queryFn: () => expenseService.getExpenses(companyId!, options),
     enabled: !!companyId,
+    placeholderData: keepPreviousData,
   })
 
   const createMutation = useMutation({
@@ -59,7 +81,7 @@ export function useExpenses() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: expenseKeys.list(companyId!),
+        queryKey: expenseKeys.lists(),
       })
     },
   })
@@ -88,7 +110,11 @@ export function useExpenses() {
       )
     },
     onMutate: async ({ expenseId, data }) => {
-      const listKey = expenseKeys.list(companyId!)
+      const listKey = expenseKeys.list(
+        companyId!,
+        dateRange?.from,
+        dateRange?.to,
+      )
       const detailKey = expenseKeys.detail(companyId!, expenseId)
 
       await queryClient.cancelQueries({ queryKey: listKey })
@@ -114,14 +140,16 @@ export function useExpenses() {
         expenseKeys.detail(companyId!, expenseId),
         updatedExpense,
       )
-      queryClient.setQueryData<Expense[]>(expenseKeys.list(companyId!), (old) =>
-        old?.map((exp) => (exp.id === expenseId ? updatedExpense : exp)),
+      queryClient.setQueryData<Expense[]>(
+        expenseKeys.list(companyId!, options?.from, options?.to),
+        (old) =>
+          old?.map((exp) => (exp.id === expenseId ? updatedExpense : exp)),
       )
     },
     onError: (_err, { expenseId }, context) => {
       if (context?.previousList) {
         queryClient.setQueryData(
-          expenseKeys.list(companyId!),
+          expenseKeys.list(companyId!, options?.from, options?.to),
           context.previousList,
         )
       }
@@ -132,6 +160,9 @@ export function useExpenses() {
         )
       }
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: expenseKeys.lists() })
+    },
   })
 
   const deleteMutation = useMutation({
@@ -140,7 +171,7 @@ export function useExpenses() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: expenseKeys.list(companyId!),
+        queryKey: expenseKeys.lists(),
       })
     },
   })
@@ -148,6 +179,7 @@ export function useExpenses() {
   return {
     expenses: query.data,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     error: query.error,
     createExpense: createMutation.mutateAsync,
     updateExpense: updateMutation.mutateAsync,
