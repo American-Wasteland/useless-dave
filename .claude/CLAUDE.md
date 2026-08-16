@@ -523,6 +523,53 @@ Biome is configured at root level. Key disabled rules:
 
 ## Common Patterns
 
+### React Query Cache Strategy
+
+**Always seed the cache from the server response — never just invalidate after a mutation.**
+
+Mutations that return the updated entity should write it directly into the cache via `onSuccess`. This avoids a redundant refetch and ensures the UI reflects server state immediately after navigation.
+
+```typescript
+const updateMutation = useMutation({
+  mutationFn: async ({ id, data }) => service.update(id, data), // returns updated entity
+
+  // Optimistic pre-update (simple fields only — don't guess server-generated data)
+  onMutate: async ({ id, data }) => {
+    await queryClient.cancelQueries({ queryKey: keys.list(companyId!) })
+    await queryClient.cancelQueries({ queryKey: keys.detail(companyId!, id) })
+    const previousList = queryClient.getQueryData(keys.list(companyId!))
+    const previousDetail = queryClient.getQueryData(keys.detail(companyId!, id))
+    queryClient.setQueryData(keys.list(companyId!), (old) =>
+      old?.map((item) => (item.id === id ? { ...item, ...data } : item)),
+    )
+    queryClient.setQueryData(keys.detail(companyId!, id), (old) =>
+      old ? { ...old, ...data } : old,
+    )
+    return { previousList, previousDetail }
+  },
+
+  // Seed cache with accurate server response (includes server-generated fields like payment IDs)
+  onSuccess: (updated, { id }) => {
+    queryClient.setQueryData(keys.detail(companyId!, id), updated)
+    queryClient.setQueryData(keys.list(companyId!), (old) =>
+      old?.map((item) => (item.id === id ? updated : item)),
+    )
+  },
+
+  // Roll back on failure
+  onError: (_err, { id }, context) => {
+    if (context?.previousList) queryClient.setQueryData(keys.list(companyId!), context.previousList)
+    if (context?.previousDetail) queryClient.setQueryData(keys.detail(companyId!, id), context.previousDetail)
+  },
+  // No onSettled invalidation — onSuccess already has the correct state
+})
+```
+
+**CRITICAL — query keys must be consistent everywhere:**
+- Define keys in one place (e.g. `expenseKeys.detail(companyId, id)`)
+- Every `useQuery` for the same entity — including view pages — must use the same key factory
+- A mismatch means `onSuccess` seeds a key nobody reads → stale data on navigation
+
 ### Navigation Best Practices
 
 - **CRITICAL**: Use `<Link>` for ALL navigation (not `onClick` with `navigate()`)
