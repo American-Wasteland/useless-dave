@@ -1,21 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
 import { Pencil } from 'lucide-react'
 import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import { PageLayout } from '../../../components/layout'
 import { Button, Currency } from '../../../components/ui'
 import { useCompanyId } from '../../../hooks/useCompanyId'
-import { getExpenseById } from '../shared/expenseService'
+import { useExpenseDetail } from '../../../hooks/useExpenses'
 import { calculateExpenseFinancials } from '../shared/expenseUtils'
 
 export function ExpenseViewPage() {
   const { expenseId } = useParams<{ expenseId: string }>()
   const companyId = useCompanyId()
 
-  const { data: expense, isLoading } = useQuery({
-    queryKey: ['expenses', companyId, expenseId],
-    queryFn: () => getExpenseById(companyId!, expenseId!),
-    enabled: !!companyId && !!expenseId,
-  })
+  const { data: expense, isLoading } = useExpenseDetail(expenseId)
 
   if (isLoading) {
     return (

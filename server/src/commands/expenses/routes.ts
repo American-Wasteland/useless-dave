@@ -164,10 +164,10 @@ export function registerExpenseRoutes(
     },
   )
 
-  // Update expense (optionally replace invoice)
+  // Update expense (optionally replace invoice, add/remove payments)
   router.patch(
     '/companies/:companyId/expenses/:id',
-    upload.single('invoice'),
+    upload.any(),
     async (req: Request, res: Response) => {
       try {
         const service = new ExpenseService(
@@ -175,6 +175,7 @@ export function registerExpenseRoutes(
           storage,
           req.params.companyId as string,
         )
+        const files = req.files as Express.Multer.File[]
 
         const updates: Record<string, unknown> = {}
         if (req.body.title !== undefined) updates.title = req.body.title
@@ -196,10 +197,57 @@ export function registerExpenseRoutes(
         if (req.body.paymentStatus !== undefined)
           updates.paymentStatus = req.body.paymentStatus
 
+        const invoiceFile = files?.find((f) => f.fieldname === 'invoice')
+
+        let newPaymentsData:
+          | Array<{
+              data: {
+                bankAccountId: string
+                amount: number
+                date: string
+                notes?: string
+              }
+              proofFile?: Express.Multer.File
+            }>
+          | undefined
+
+        if (req.body.payments) {
+          const paymentsArray = JSON.parse(req.body.payments)
+          newPaymentsData = paymentsArray.map(
+            (payment: unknown, index: number) => {
+              const p = payment as {
+                bankAccountId: string
+                amount: number
+                date: string
+                notes?: string
+              }
+              const proofFile = files?.find(
+                (f) => f.fieldname === `payment-proof-${index}`,
+              )
+              return {
+                data: {
+                  bankAccountId: p.bankAccountId,
+                  amount: Number(p.amount),
+                  date: p.date,
+                  ...(p.notes ? { notes: p.notes } : {}),
+                },
+                proofFile,
+              }
+            },
+          )
+        }
+
+        let deletedPaymentIds: string[] | undefined
+        if (req.body.deletedPaymentIds) {
+          deletedPaymentIds = JSON.parse(req.body.deletedPaymentIds)
+        }
+
         const expense = await service.update(
           req.params.id as string,
           updates,
-          req.file,
+          invoiceFile,
+          newPaymentsData,
+          deletedPaymentIds,
         )
 
         if (!expense) {
@@ -275,7 +323,7 @@ export function registerExpenseRoutes(
             bankAccountId,
             amount: Number(amount),
             date,
-            notes,
+            ...(notes ? { notes } : {}),
           },
           req.file,
         )

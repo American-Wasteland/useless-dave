@@ -69,16 +69,22 @@ export function useExpenses() {
       expenseId,
       data,
       invoiceFile,
+      paymentsData,
+      deletedPaymentIds,
     }: {
       expenseId: string
       data: UpdateExpenseInput
       invoiceFile?: File
+      paymentsData?: Array<{ data: AddPaymentInput; proofFile?: File }>
+      deletedPaymentIds?: string[]
     }) => {
       return expenseService.updateExpense(
         companyId!,
         expenseId,
         data,
         invoiceFile,
+        paymentsData,
+        deletedPaymentIds,
       )
     },
     onMutate: async ({ expenseId, data }) => {
@@ -103,6 +109,15 @@ export function useExpenses() {
 
       return { previousList, previousDetail }
     },
+    onSuccess: (updatedExpense, { expenseId }) => {
+      queryClient.setQueryData(
+        expenseKeys.detail(companyId!, expenseId),
+        updatedExpense,
+      )
+      queryClient.setQueryData<Expense[]>(expenseKeys.list(companyId!), (old) =>
+        old?.map((exp) => (exp.id === expenseId ? updatedExpense : exp)),
+      )
+    },
     onError: (_err, { expenseId }, context) => {
       if (context?.previousList) {
         queryClient.setQueryData(
@@ -116,14 +131,6 @@ export function useExpenses() {
           context.previousDetail,
         )
       }
-    },
-    onSettled: (_data, _error, { expenseId }) => {
-      queryClient.invalidateQueries({
-        queryKey: expenseKeys.list(companyId!),
-      })
-      queryClient.invalidateQueries({
-        queryKey: expenseKeys.detail(companyId!, expenseId),
-      })
     },
   })
 

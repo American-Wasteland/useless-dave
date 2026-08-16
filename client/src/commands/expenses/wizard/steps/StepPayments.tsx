@@ -10,6 +10,7 @@ export interface PaymentData {
   date: string
   notes: string
   proofFile: File | null
+  proofUrl?: string
 }
 
 interface StepPaymentsProps {
@@ -95,12 +96,22 @@ export function StepPayments({ payments, onUpdate }: StepPaymentsProps) {
                         {payment.notes}
                       </p>
                     )}
-                    {payment.proofFile && (
+                    {payment.proofFile ? (
                       <div className="flex items-center gap-2 text-xs text-gray-600">
                         <FileText className="h-3 w-3" />
                         <span>{payment.proofFile.name}</span>
                       </div>
-                    )}
+                    ) : payment.proofUrl ? (
+                      <a
+                        href={payment.proofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <FileText className="h-3 w-3" />
+                        Ver comprobante
+                      </a>
+                    ) : null}
                   </div>
                 </div>
 

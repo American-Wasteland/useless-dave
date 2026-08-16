@@ -13,6 +13,15 @@ export async function getAccountingCategories(
   )
 }
 
+export async function getCategoryById(
+  companyId: string,
+  categoryId: string,
+): Promise<AccountingCategory> {
+  return apiRequest<AccountingCategory>(
+    `/companies/${companyId}/accounting-categories/${categoryId}`,
+  )
+}
+
 export async function createAccountingCategory(
   companyId: string,
   data: CreateAccountingCategoryInput,

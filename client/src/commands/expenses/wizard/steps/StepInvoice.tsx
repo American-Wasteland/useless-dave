@@ -1,12 +1,17 @@
-import { FileText, Upload, X } from 'lucide-react'
+import { ExternalLink, FileText, Upload, X } from 'lucide-react'
 import { useRef } from 'react'
 
 interface StepInvoiceProps {
   invoiceFile: File | null
+  existingInvoiceUrl?: string
   onUpdate: (data: { invoiceFile: File | null }) => void
 }
 
-export function StepInvoice({ invoiceFile, onUpdate }: StepInvoiceProps) {
+export function StepInvoice({
+  invoiceFile,
+  existingInvoiceUrl,
+  onUpdate,
+}: StepInvoiceProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +49,46 @@ export function StepInvoice({ invoiceFile, onUpdate }: StepInvoiceProps) {
           <span className="text-gray-400 font-normal">- Opcional</span>
         </label>
 
-        {!invoiceFile ? (
+        {!invoiceFile && existingInvoiceUrl ? (
+          <div className="border border-gray-300 rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded bg-red-100 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    Factura actual
+                  </p>
+                  <a
+                    href={existingInvoiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Ver factura
+                  </a>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="text-xs text-gray-500 hover:text-primary underline transition-colors"
+              >
+                Reemplazar
+              </button>
+            </div>
+            <input
+              id="expense-invoice"
+              ref={inputRef}
+              type="file"
+              accept="application/pdf,image/jpeg,image/jpg,image/png,image/webp"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+        ) : !invoiceFile ? (
           // biome-ignore lint/a11y/useSemanticElements: div intentionally styled as file drop zone
           <div
             role="button"

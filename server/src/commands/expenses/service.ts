@@ -223,8 +223,11 @@ export class ExpenseService {
         }
 
         const payment: Omit<ExpensePayment, 'id'> = {
-          ...data,
-          ...(proofUrl && { proofUrl }),
+          bankAccountId: data.bankAccountId,
+          amount: data.amount,
+          date: data.date,
+          ...(data.notes ? { notes: data.notes } : {}),
+          ...(proofUrl ? { proofUrl } : {}),
           createdAt: now,
         }
 
@@ -239,12 +242,17 @@ export class ExpenseService {
   }
 
   /**
-   * Update expense (optionally replace invoice)
+   * Update expense (optionally replace invoice, add new payments, delete removed payments)
    */
   async update(
     id: string,
     input: UpdateExpenseInput,
     invoiceFile: Express.Multer.File | undefined,
+    newPaymentsData?: Array<{
+      data: AddPaymentInput
+      proofFile?: Express.Multer.File
+    }>,
+    deletedPaymentIds?: string[],
   ): Promise<Expense | null> {
     const doc = await this.collection.doc(id).get()
     if (!doc.exists) return null
@@ -259,6 +267,64 @@ export class ExpenseService {
     }
 
     await this.collection.doc(id).update(updates)
+
+    // Delete removed payments (restore bank balance + remove files)
+    if (deletedPaymentIds && deletedPaymentIds.length > 0) {
+      for (const paymentId of deletedPaymentIds) {
+        const paymentDoc = await this.paymentsCollection(id)
+          .doc(paymentId)
+          .get()
+        if (!paymentDoc.exists) continue
+
+        const payment = paymentDoc.data() as ExpensePayment
+        await this.updateBankAccountBalance(
+          payment.bankAccountId,
+          payment.amount,
+        )
+
+        if (payment.proofUrl) {
+          try {
+            const bucket = this.storage.bucket()
+            const url = new URL(payment.proofUrl)
+            const pathParts = url.pathname.split('/')
+            const bucketName = pathParts[1]
+            const filePath = pathParts.slice(2).join('/')
+            if (bucketName === bucket.name) {
+              await bucket.file(filePath).delete()
+            }
+          } catch (error) {
+            console.error('Error deleting payment proof:', error)
+          }
+        }
+
+        await this.paymentsCollection(id).doc(paymentId).delete()
+      }
+    }
+
+    // Add new payments
+    if (newPaymentsData && newPaymentsData.length > 0) {
+      const now = new Date().toISOString()
+      for (const { data, proofFile } of newPaymentsData) {
+        const paymentRef = this.paymentsCollection(id).doc()
+
+        let proofUrl: string | undefined
+        if (proofFile) {
+          proofUrl = await this.uploadPaymentProof(id, paymentRef.id, proofFile)
+        }
+
+        const payment: Omit<ExpensePayment, 'id'> = {
+          bankAccountId: data.bankAccountId,
+          amount: data.amount,
+          date: data.date,
+          ...(data.notes ? { notes: data.notes } : {}),
+          ...(proofUrl ? { proofUrl } : {}),
+          createdAt: now,
+        }
+
+        await paymentRef.set(payment)
+        await this.updateBankAccountBalance(data.bankAccountId, -data.amount)
+      }
+    }
 
     return this.getById(id)
   }
@@ -302,8 +368,11 @@ export class ExpenseService {
     }
 
     const payment: Omit<ExpensePayment, 'id'> = {
-      ...input,
-      ...(proofUrl && { proofUrl }),
+      bankAccountId: input.bankAccountId,
+      amount: input.amount,
+      date: input.date,
+      ...(input.notes ? { notes: input.notes } : {}),
+      ...(proofUrl ? { proofUrl } : {}),
       createdAt: now,
     }
 

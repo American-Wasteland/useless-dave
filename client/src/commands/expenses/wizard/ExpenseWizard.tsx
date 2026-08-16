@@ -25,6 +25,7 @@ export interface WizardData {
   reteIca: number
   payments: PaymentData[]
   invoiceFile: File | null
+  existingInvoiceUrl?: string
   paymentStatus: PaymentStatus
 }
 
@@ -89,6 +90,7 @@ export function ExpenseWizard({
     reteIca: 0,
     payments: [],
     invoiceFile: null,
+    existingInvoiceUrl: undefined,
     paymentStatus: 'pending',
     ...initialData,
   })
@@ -210,7 +212,11 @@ export function ExpenseWizard({
           />
         )}
         {step === 2 && (
-          <StepInvoice invoiceFile={data.invoiceFile} onUpdate={update} />
+          <StepInvoice
+            invoiceFile={data.invoiceFile}
+            existingInvoiceUrl={data.existingInvoiceUrl}
+            onUpdate={update}
+          />
         )}
         {step === 3 && (
           <StepPayments payments={data.payments} onUpdate={update} />
