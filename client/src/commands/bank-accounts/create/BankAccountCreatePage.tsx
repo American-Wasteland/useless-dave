@@ -19,7 +19,17 @@ export function BankAccountCreatePage() {
   }
 
   return (
-    <PageLayout title="Crear cuenta bancaria">
+    <PageLayout
+      title="Crear cuenta bancaria"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Cuentas bancarias',
+          href: `/${companyId}/accountancy/bank-accounts`,
+        },
+        { label: 'Crear cuenta bancaria' },
+      ]}
+    >
       <BankAccountWizard
         mode="create"
         onSubmit={handleSubmit}

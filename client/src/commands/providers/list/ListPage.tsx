@@ -82,6 +82,10 @@ export function ListProvidersPage() {
       maxWidth="7xl"
       title="Proveedores"
       subtitle={`${providers.length} proveedor${providers.length !== 1 ? 'es' : ''} registrado${providers.length !== 1 ? 's' : ''}`}
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Proveedores' },
+      ]}
       actions={
         <Link
           to={`/${companyId}/accountancy/providers/create`}

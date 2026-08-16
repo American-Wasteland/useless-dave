@@ -47,7 +47,14 @@ export function ExpenseCreatePage() {
   }
 
   return (
-    <PageLayout title="Registrar gasto">
+    <PageLayout
+      title="Registrar gasto"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Gastos', href: `/${companyId}/accountancy/expenses` },
+        { label: 'Registrar gasto' },
+      ]}
+    >
       <ExpenseWizard
         mode="create"
         onSubmit={handleSubmit}

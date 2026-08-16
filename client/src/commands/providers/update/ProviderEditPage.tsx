@@ -74,7 +74,18 @@ export function ProviderEditPage() {
   }
 
   return (
-    <PageLayout title="Actualizar proveedor">
+    <PageLayout
+      title="Actualizar proveedor"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Proveedores', href: `/${companyId}/accountancy/providers` },
+        {
+          label: provider.name,
+          href: `/${companyId}/accountancy/providers/${providerId}`,
+        },
+        { label: 'Actualizar proveedor' },
+      ]}
+    >
       <ProviderWizard
         mode="edit"
         initialData={{

@@ -131,7 +131,18 @@ export function ExpenseEditPage() {
   }
 
   return (
-    <PageLayout title="Actualizar gasto">
+    <PageLayout
+      title="Actualizar gasto"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Gastos', href: `/${companyId}/accountancy/expenses` },
+        {
+          label: expense.title,
+          href: `/${companyId}/accountancy/expenses/${expenseId}`,
+        },
+        { label: 'Actualizar gasto' },
+      ]}
+    >
       <ExpenseWizard
         mode="edit"
         initialData={initialData}

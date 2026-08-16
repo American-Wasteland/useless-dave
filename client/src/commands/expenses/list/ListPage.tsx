@@ -81,6 +81,10 @@ export function ListExpensesPage() {
       maxWidth="7xl"
       title="Gastos"
       subtitle={`${expenses?.length ?? 0} gasto${(expenses?.length ?? 0) !== 1 ? 's' : ''} registrado${(expenses?.length ?? 0) !== 1 ? 's' : ''}`}
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Gastos' },
+      ]}
       actions={
         <Link
           to={`/${companyId}/accountancy/expenses/create`}

@@ -30,6 +30,11 @@ export function ProviderViewPage() {
 
   return (
     <PageLayout
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Proveedores', href: `/${companyId}/accountancy/providers` },
+        { label: provider.name },
+      ]}
       actions={
         <Link to={`/${companyId}/accountancy/providers/${providerId}/edit`}>
           <Button variant="secondary">

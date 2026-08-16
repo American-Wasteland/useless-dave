@@ -53,6 +53,10 @@ export function ListCostCentersPage() {
       maxWidth="7xl"
       title="Centros de costo"
       subtitle={`${costCenters.length} centro${costCenters.length !== 1 ? 's' : ''} de costo registrado${costCenters.length !== 1 ? 's' : ''}`}
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Centros de costo' },
+      ]}
       actions={
         <Link
           to={`/${companyId}/accountancy/cost-centers/create`}

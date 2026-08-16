@@ -50,7 +50,17 @@ export function CostCenterEditPage() {
   }
 
   return (
-    <PageLayout title="Actualizar centro de costo">
+    <PageLayout
+      title="Actualizar centro de costo"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Centros de costo',
+          href: `/${companyId}/accountancy/cost-centers`,
+        },
+        { label: costCenter.name },
+      ]}
+    >
       <CostCenterWizard
         mode="edit"
         initialData={{

@@ -89,6 +89,10 @@ export function ListCategoriesPage() {
       maxWidth="6xl"
       title="Categorías contables"
       subtitle={`${categories.length} categoría${categories.length !== 1 ? 's' : ''} registrada${categories.length !== 1 ? 's' : ''}`}
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Categorías contables' },
+      ]}
       actions={
         <Link
           to={`/${companyId}/accountancy/categories/create`}

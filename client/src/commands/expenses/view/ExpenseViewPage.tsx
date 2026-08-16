@@ -44,6 +44,11 @@ export function ExpenseViewPage() {
     <PageLayout
       title={expense.title}
       maxWidth="6xl"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Gastos', href: `/${companyId}/accountancy/expenses` },
+        { label: expense.title },
+      ]}
       actions={
         <Link to={`/${companyId}/accountancy/expenses/${expenseId}/edit`}>
           <Button variant="secondary">

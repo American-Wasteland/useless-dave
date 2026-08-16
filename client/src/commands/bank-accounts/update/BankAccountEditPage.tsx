@@ -49,7 +49,21 @@ export function BankAccountEditPage() {
   }
 
   return (
-    <PageLayout title="Actualizar cuenta bancaria">
+    <PageLayout
+      title="Actualizar cuenta bancaria"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Cuentas bancarias',
+          href: `/${companyId}/accountancy/bank-accounts`,
+        },
+        {
+          label: account.name,
+          href: `/${companyId}/accountancy/bank-accounts/${accountId}`,
+        },
+        { label: 'Actualizar cuenta bancaria' },
+      ]}
+    >
       <BankAccountWizard
         mode="edit"
         initialData={{ name: account.name }}

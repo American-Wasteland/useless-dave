@@ -16,7 +16,17 @@ export function CategoryCreatePage() {
   }
 
   return (
-    <PageLayout title="Crear categoría contable">
+    <PageLayout
+      title="Crear categoría contable"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Categorías contables',
+          href: `/${companyId}/accountancy/categories`,
+        },
+        { label: 'Crear categoría contable' },
+      ]}
+    >
       <CategoryWizard
         mode="create"
         onSubmit={handleSubmit}

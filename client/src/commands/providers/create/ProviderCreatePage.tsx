@@ -34,7 +34,14 @@ export function ProviderCreatePage() {
   }
 
   return (
-    <PageLayout title="Crear proveedor">
+    <PageLayout
+      title="Crear proveedor"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Proveedores', href: `/${companyId}/accountancy/providers` },
+        { label: 'Crear proveedor' },
+      ]}
+    >
       <ProviderWizard
         mode="create"
         onSubmit={handleSubmit}

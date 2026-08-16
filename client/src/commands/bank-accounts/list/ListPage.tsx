@@ -49,6 +49,10 @@ export function ListBankAccountsPage() {
       maxWidth="7xl"
       title="Cuentas bancarias"
       subtitle={`${bankAccounts.length} cuenta${bankAccounts.length !== 1 ? 's' : ''} registrada${bankAccounts.length !== 1 ? 's' : ''}`}
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        { label: 'Cuentas bancarias' },
+      ]}
       actions={
         <Link
           to={`/${companyId}/accountancy/bank-accounts/create`}

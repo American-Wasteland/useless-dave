@@ -46,6 +46,14 @@ export function BankAccountViewPage() {
     <PageLayout
       title={account.name}
       maxWidth="6xl"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Cuentas bancarias',
+          href: `/${companyId}/accountancy/bank-accounts`,
+        },
+        { label: account.name },
+      ]}
       actions={
         <Link to={`/${companyId}/accountancy/bank-accounts/${accountId}/edit`}>
           <Button variant="secondary">

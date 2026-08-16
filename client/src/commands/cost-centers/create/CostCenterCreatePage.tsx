@@ -16,7 +16,17 @@ export function CostCenterCreatePage() {
   }
 
   return (
-    <PageLayout title="Crear centro de costo">
+    <PageLayout
+      title="Crear centro de costo"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Centros de costo',
+          href: `/${companyId}/accountancy/cost-centers`,
+        },
+        { label: 'Crear centro de costo' },
+      ]}
+    >
       <CostCenterWizard
         mode="create"
         onSubmit={handleSubmit}

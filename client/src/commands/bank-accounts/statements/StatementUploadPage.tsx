@@ -71,8 +71,20 @@ export function StatementUploadPage() {
 
   return (
     <PageLayout
-      title={`Agregar extracto — ${account?.name ?? ''}`}
+      title="Agregar extracto"
       maxWidth="3xl"
+      breadcrumbs={[
+        { label: 'Inicio', href: `/${companyId}` },
+        {
+          label: 'Cuentas bancarias',
+          href: `/${companyId}/accountancy/bank-accounts`,
+        },
+        {
+          label: account?.name ?? '…',
+          href: `/${companyId}/accountancy/bank-accounts/${accountId}`,
+        },
+        { label: 'Agregar extracto' },
+      ]}
     >
       <div className="card p-6 space-y-6">
         {error && (
